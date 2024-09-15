@@ -17,7 +17,40 @@ Asegúrate de tener instalado Flutter. Puedes verificar si lo tienes instalado c
 
 ### Estructura del proyecto
 
-lib/ ├── core/ # Código central que es compartido por varias partes de la aplicación │ ├── api/ # Servicios relacionados con las llamadas a la API │ │ ├── api_service.dart # Lógica para realizar llamadas HTTP a la API del servidor │ │ ├── interceptor.dart # Manejo de interceptores, como la autenticación │ │ └── endpoints.dart # Definición de los endpoints del servidor │ ├── models/ # Modelos de datos que reflejan las respuestas de la API │ │ └── user_model.dart # Modelo de datos para los usuarios │ ├── utils/ # Utilidades y constantes generales │ │ ├── constants.dart # Definición de constantes globales │ │ ├── helpers.dart # Funciones auxiliares (helpers) │ │ └── validators.dart # Validadores comunes para formularios, por ejemplo, validación de correos │ ├── theme/ # Gestión de temas y estilos │ │ └── app_theme.dart # Definición del tema de la aplicación, colores, tipografías, etc. │ └── config/ # Configuración de entornos y parámetros globales │ └── environment.dart # Configuraciones de entornos (desarrollo, producción) ├── features/ # Módulos individuales de la aplicación divididos por funcionalidades │ ├── home/ # Funcionalidades relacionadas con la pantalla de inicio │ │ ├── pages/ # Páginas visuales para la característica de inicio │ │ │ └── home_page.dart # Página principal del inicio │ │ ├── controllers/ # Controladores que manejan la lógica del inicio │ │ │ └── home_controller.dart # Lógica de negocios para la pantalla principal │ │ └── widgets/ # Componentes visuales específicos de la pantalla de inicio │ │ └── home_widget.dart # Widgets reutilizables de la página principal │ ├── login/ # Módulo de autenticación y manejo de inicio de sesión │ │ ├── pages/ # Páginas visuales para el inicio de sesión │ │ │ └── login_page.dart # Página de inicio de sesión │ │ ├── controllers/ # Controladores para la lógica de la autenticación │ │ │ └── login_controller.dart # Lógica para la autenticación de usuarios │ │ └── widgets/ # Widgets relacionados con el login │ │ └── login_form.dart # Formulario de inicio de sesión ├── widgets/ # Widgets reutilizables en varias partes de la aplicación │ └── common_button.dart # Botón reutilizable en diferentes pantallas └── main.dart # Punto de entrada principal de la aplicación
+lib/
+├── core/                      # Código central que es compartido por varias partes de la aplicación
+│   ├── api/                   # Servicios relacionados con las llamadas a la API
+│   │   ├── api_service.dart   # Lógica para realizar llamadas HTTP a la API del servidor
+│   │   ├── interceptor.dart   # Manejo de interceptores, como la autenticación
+│   │   └── endpoints.dart     # Definición de los endpoints del servidor
+│   ├── models/                # Modelos de datos que reflejan las respuestas de la API
+│   │   └── user_model.dart    # Modelo de datos para los usuarios
+│   ├── utils/                 # Utilidades y constantes generales
+│   │   ├── constants.dart     # Definición de constantes globales
+│   │   ├── helpers.dart       # Funciones auxiliares (helpers)
+│   │   └── validators.dart    # Validadores comunes para formularios, por ejemplo, validación de correos
+│   ├── theme/                 # Gestión de temas y estilos
+│   │   └── app_theme.dart     # Definición del tema de la aplicación, colores, tipografías, etc.
+│   └── config/                # Configuración de entornos y parámetros globales
+│       └── environment.dart   # Configuraciones de entornos (desarrollo, producción)
+├── features/                  # Módulos individuales de la aplicación divididos por funcionalidades
+│   ├── home/                  # Funcionalidades relacionadas con la pantalla de inicio
+│   │   ├── pages/             # Páginas visuales para la característica de inicio
+│   │   │   └── home_page.dart # Página principal del inicio
+│   │   ├── controllers/       # Controladores que manejan la lógica del inicio
+│   │   │   └── home_controller.dart  # Lógica de negocios para la pantalla principal
+│   │   └── widgets/           # Componentes visuales específicos de la pantalla de inicio
+│   │       └── home_widget.dart  # Widgets reutilizables de la página principal
+│   ├── login/                 # Módulo de autenticación y manejo de inicio de sesión
+│   │   ├── pages/             # Páginas visuales para el inicio de sesión
+│   │   │   └── login_page.dart   # Página de inicio de sesión
+│   │   ├── controllers/       # Controladores para la lógica de la autenticación
+│   │   │   └── login_controller.dart # Lógica para la autenticación de usuarios
+│   │   └── widgets/           # Widgets relacionados con el login
+│   │       └── login_form.dart # Formulario de inicio de sesión
+├── widgets/                   # Widgets reutilizables en varias partes de la aplicación
+│   └── common_button.dart     # Botón reutilizable en diferentes pantallas
+├── main.dart                  # Punto de entrada principal de la aplicación
 
 ###Arquitectura Cliente-Servidor
 SIVEN sigue una arquitectura Cliente-Servidor, donde:
