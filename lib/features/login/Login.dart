@@ -170,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton(
-                          onPressed: () {}, // Funcionalidad vacía
+                          onPressed: _showForgotPasswordDialog, // Funcionalidad vacía
                           child: Text(
                             '¿Olvidaste tu contraseña?',
                             style: TextStyle(color: const Color.fromARGB(255, 255, 27, 27)),

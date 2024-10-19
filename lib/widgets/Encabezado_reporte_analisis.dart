@@ -54,7 +54,7 @@ class BotonCentroSalud extends StatelessWidget {
         child: const Icon(Icons.apartment, color: Color(0xFF4A4A4A), size: 14),
       ),
       label: const Text(
-        'Centro de Salud de Acoyapa',
+        'Centro de Salud Los Robles',
         style: TextStyle(color: Colors.white, fontSize: 15),
       ),
       style: ElevatedButton.styleFrom(
@@ -110,7 +110,7 @@ class RedDeServicio extends StatelessWidget {
             ),
           ),
           TextSpan(
-            text: 'SILAIS CHONTALES\n',
+            text: 'SILAIS MANAGUA\n',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.normal,
@@ -118,7 +118,7 @@ class RedDeServicio extends StatelessWidget {
             ),
           ),
           TextSpan(
-            text: 'CENTRO DE SALUD ACOYAPA',
+            text: 'CENTRO DE SALUD LOS ROBLES',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.normal,
