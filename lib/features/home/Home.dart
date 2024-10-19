@@ -92,8 +92,12 @@ class Home extends StatelessWidget {
                         item: cardItems[index],
                         screenHeight: screenSize.height,
                         onTap: () {
+                          // Navegación específica para "REGISTRO Y SEGUIMIENTO DE DATOS EPIDEMIOLÓGICOS"
+                          if (cardItems[index].text == "REGISTRO Y SEGUIMIENTO DE DATOS EPIDEMIOLÓGICOS") {
+                            Navigator.pushNamed(context, '/captacion_busqeda_persona');
+                          }
                           // Navegación específica para "REPORTES Y ANÁLISIS"
-                          if (cardItems[index].text == "REPORTES Y ANÁLISIS") {
+                          else if (cardItems[index].text == "REPORTES Y ANÁLISIS") {
                             Navigator.pushNamed(context, '/FiltrarReporte');
                           }
                           // Navegación específica para "ALERTAS TEMPRANAS"

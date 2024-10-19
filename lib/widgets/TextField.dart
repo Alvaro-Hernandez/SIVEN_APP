@@ -1,7 +1,8 @@
+// Archivo: widgets/custom_text_field_dropdown.dart
+
 import 'package:flutter/material.dart';
 
-// Widget reutilizable para campos de texto con menú desplegable
-class CustomTextFieldDropdown extends StatelessWidget {
+class CustomTextFieldDropdown extends StatefulWidget {
   final String hintText;
   final TextEditingController controller;
   final List<String> options;
@@ -24,83 +25,138 @@ class CustomTextFieldDropdown extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _CustomTextFieldDropdownState createState() => _CustomTextFieldDropdownState();
+}
+
+class _CustomTextFieldDropdownState extends State<CustomTextFieldDropdown> {
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+  bool _isDropdownOpen = false;
+  final FocusNode _focusNode = FocusNode();
+
+  void _toggleDropdown() {
+    if (_isDropdownOpen) {
+      _closeDropdown();
+    } else {
+      _openDropdown();
+    }
+  }
+
+  void _openDropdown() {
+    _overlayEntry = _createOverlayEntry();
+    Overlay.of(context)?.insert(_overlayEntry!);
+    setState(() {
+      _isDropdownOpen = true;
+    });
+
+    // Cerrar el dropdown si se pierde el foco
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _closeDropdown();
+      }
+    });
+  }
+
+  void _closeDropdown() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    setState(() {
+      _isDropdownOpen = false;
+    });
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
+    var size = renderBox.size;
+    var offset = renderBox.localToGlobal(Offset.zero);
+
+    return OverlayEntry(
+      builder: (context) => Positioned(
+        width: size.width,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: Offset(0.0, size.height + 5.0),
+          child: Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: 200, // Altura máxima del desplegable
+              ),
+              child: ListView(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                children: widget.options.map((option) {
+                  return ListTile(
+                    title: Text(option),
+                    onTap: () {
+                      widget.controller.text = option;
+                      _closeDropdown();
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _closeDropdown();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: Autocomplete<String>(
-        optionsBuilder: (TextEditingValue textEditingValue) {
-          return options.where((String option) {
-            return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
-          });
-        },
-        onSelected: (String selection) {
-          controller.text = selection;
-        },
-        fieldViewBuilder: (context, fieldController, focusNode, onFieldSubmitted) {
-          return TextFormField(
-            controller: fieldController,
-            focusNode: focusNode,
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: _toggleDropdown,
+        child: AbsorbPointer(
+          child: TextFormField(
+            controller: widget.controller,
+            focusNode: _focusNode,
             decoration: InputDecoration(
-              hintText: hintText,
+              hintText: widget.hintText,
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF4A4A4A)), 
-                    onPressed: () {}, // Icono indicativo de dropdown
+                  Icon(
+                    _isDropdownOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                    color: Color(0xFF4A4A4A),
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete, color: borderColor), // Icono para limpiar el campo
+                    icon: Icon(Icons.delete, color: widget.borderColor),
                     onPressed: () {
-                      fieldController.clear(); // Limpiar el campo de texto
+                      widget.controller.clear();
                     },
                   ),
                 ],
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(borderRadius),
-                borderSide: BorderSide(color: borderColor, width: borderWidth),
+                borderRadius: BorderRadius.circular(widget.borderRadius),
+                borderSide: BorderSide(color: widget.borderColor, width: widget.borderWidth),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(borderRadius),
-                borderSide: BorderSide(color: borderColor, width: borderWidth),
+                borderRadius: BorderRadius.circular(widget.borderRadius),
+                borderSide: BorderSide(color: widget.borderColor, width: widget.borderWidth),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(borderRadius),
-                borderSide: BorderSide(color: borderColor, width: borderWidth),
+                borderRadius: BorderRadius.circular(widget.borderRadius),
+                borderSide: BorderSide(color: widget.borderColor, width: widget.borderWidth),
               ),
             ),
-          );
-        },
-        optionsViewBuilder: (context, onSelected, options) {
-          return Align(
-            alignment: Alignment.topLeft,
-            child: Material(
-              elevation: 4.0,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: 200.0, // Altura máxima del desplegable
-                  maxWidth: MediaQuery.of(context).size.width - 40, // Ajustar ancho de la pantalla
-                ),
-                child: ListView.builder(
-                  padding: EdgeInsets.zero,
-                  itemCount: options.length,
-                  shrinkWrap: true,
-                  itemBuilder: (BuildContext context, int index) {
-                    final String option = options.elementAt(index);
-                    return ListTile(
-                      title: Text(option),
-                      onTap: () {
-                        onSelected(option); // Seleccionar opción
-                      },
-                    );
-                  },
-                ),
-              ),
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.black,
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
