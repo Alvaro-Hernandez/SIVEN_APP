@@ -1,5 +1,3 @@
-// Archivo: captacion.dart
-
 import 'package:flutter/material.dart';
 import 'package:siven_app/widgets/version.dart'; // Widget reutilizado
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart'; // Widget reutilizado
@@ -42,6 +40,19 @@ class _CaptacionState extends State<Captacion> {
   final TextEditingController telefonoJefeFamiliaNotificacionController = TextEditingController();
   final TextEditingController busquedaNombreNotificacion2Controller = TextEditingController();
 
+  // Controladores para la cuarta card
+  final TextEditingController datoLaboratorio1Controller = TextEditingController();
+  final TextEditingController datoLaboratorio2Controller = TextEditingController();
+  final TextEditingController datoLaboratorio3Controller = TextEditingController();
+  final TextEditingController datoLaboratorio4Controller = TextEditingController();
+  final TextEditingController datoLaboratorioSelectorController = TextEditingController();
+  final TextEditingController busquedaNombreLaboratorio1Controller = TextEditingController();
+  final TextEditingController telefonoJefeFamiliaLaboratorioController = TextEditingController();
+  final TextEditingController busquedaNombreLaboratorio2Controller = TextEditingController();
+
+  // Variables para la animación de guardar
+  bool _isSaving = false;
+
   @override
   void dispose() {
     // Dispose de los controladores de la primera card
@@ -71,12 +82,23 @@ class _CaptacionState extends State<Captacion> {
     telefonoJefeFamiliaNotificacionController.dispose();
     busquedaNombreNotificacion2Controller.dispose();
 
+    // Dispose de los controladores de la cuarta card
+    datoLaboratorio1Controller.dispose();
+    datoLaboratorio2Controller.dispose();
+    datoLaboratorio3Controller.dispose();
+    datoLaboratorio4Controller.dispose();
+    datoLaboratorioSelectorController.dispose(); // Controlador agregado
+    busquedaNombreLaboratorio1Controller.dispose();
+    telefonoJefeFamiliaLaboratorioController.dispose();
+    busquedaNombreLaboratorio2Controller.dispose();
+
     super.dispose();
   }
 
   // Métodos de navegación
   void _nextCard() {
-    if (_currentCardIndex < 2) { // Ahora hay tres cards: índice 0, 1 y 2
+    if (_currentCardIndex < 3) {
+      // Ahora hay cuatro cards: índice 0, 1, 2 y 3
       setState(() {
         _currentCardIndex++;
       });
@@ -120,7 +142,39 @@ class _CaptacionState extends State<Captacion> {
       busquedaNombreNotificacion1Controller.clear();
       telefonoJefeFamiliaNotificacionController.clear();
       busquedaNombreNotificacion2Controller.clear();
+
+      // Limpiar controladores de la cuarta card
+      datoLaboratorio1Controller.clear();
+      datoLaboratorio2Controller.clear();
+      datoLaboratorio3Controller.clear();
+      datoLaboratorio4Controller.clear();
+      busquedaNombreLaboratorio1Controller.clear();
+      telefonoJefeFamiliaLaboratorioController.clear();
+      busquedaNombreLaboratorio2Controller.clear();
     });
+  }
+
+  // Método para guardar datos en la cuarta card
+  Future<void> _guardarDatos() async {
+    setState(() {
+      _isSaving = true;
+    });
+
+    // Simular una operación de guardado (por ejemplo, llamada a una API)
+    await Future.delayed(Duration(seconds: 2));
+
+    setState(() {
+      _isSaving = false;
+    });
+
+    // Mostrar mensaje de éxito
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Se guardó exitosamente'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   // Método para renderizar el contenido de la card basado en el índice actual
@@ -131,6 +185,8 @@ class _CaptacionState extends State<Captacion> {
       return _buildSecondCard();
     } else if (_currentCardIndex == 2) {
       return _buildThirdCard();
+    } else if (_currentCardIndex == 3) {
+      return _buildFourthCard();
     } else {
       return _buildFirstCard(); // Valor por defecto
     }
@@ -157,7 +213,8 @@ class _CaptacionState extends State<Captacion> {
                   height: 24,
                   decoration: BoxDecoration(
                     color: const Color(0xFF00C1D4), // Fondo celeste
-                    borderRadius: BorderRadius.circular(4), // Bordes ligeramente redondeados
+                    borderRadius: BorderRadius.circular(
+                        4), // Bordes ligeramente redondeados
                   ),
                   alignment: Alignment.center,
                   child: const Text(
@@ -181,8 +238,6 @@ class _CaptacionState extends State<Captacion> {
             ),
             const SizedBox(height: 20),
 
-            // Resto del contenido de la primera card
-
             // Fila 1: Maternidad
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,7 +253,11 @@ class _CaptacionState extends State<Captacion> {
                 CustomTextFieldDropdown(
                   hintText: 'Selecciona una opción',
                   controller: maternidadController,
-                  options: ['Opción 1', 'Opción 2', 'Opción 3'], // Reemplaza con tus opciones
+                  options: [
+                    'Hospital Nacional de Niños',
+                    'Centro de Salud Masaya',
+                    'Hospital Regional de León'
+                  ], // Datos reales de Nicaragua
                   borderColor: const Color(0xFF00C1D4),
                   borderRadius: 8.0,
                   width: double.infinity,
@@ -248,7 +307,11 @@ class _CaptacionState extends State<Captacion> {
                 CustomTextFieldDropdown(
                   hintText: 'Selecciona una opción',
                   controller: silaisController,
-                  options: ['SILAIS - ESTELÍ', 'SILAIS - LEÓN', 'SILAIS - MANAGUA'],
+                  options: [
+                    'SILAIS - ESTELÍ',
+                    'SILAIS - LEÓN',
+                    'SILAIS - MANAGUA'
+                  ], // Datos reales de Nicaragua
                   borderColor: const Color(0xFF00C1D4),
                   borderRadius: 8.0,
                   width: double.infinity,
@@ -273,7 +336,11 @@ class _CaptacionState extends State<Captacion> {
                 CustomTextFieldDropdown(
                   hintText: 'Selecciona una opción',
                   controller: unidadController,
-                  options: ['Consultorio Médico Roger Montoya', 'CAPS - LEÓN'],
+                  options: [
+                    'Consultorio Médico Roger Montoya',
+                    'CAPS - León',
+                    'Hospital Nacional San Juan de Dios'
+                  ], // Datos reales de Nicaragua
                   borderColor: const Color(0xFF00C1D4),
                   borderRadius: 8.0,
                   width: double.infinity,
@@ -323,7 +390,7 @@ class _CaptacionState extends State<Captacion> {
                 CustomTextFieldDropdown(
                   hintText: 'Selecciona una opción',
                   controller: comorbilidades2Controller,
-                  options: ['AUTISMO', 'DIABETES', 'HIPERTENSIÓN'],
+                  options: ['Diabetes', 'Hipertensión', 'Enfermedad Pulmonar'],
                   borderColor: const Color(0xFF00C1D4),
                   borderRadius: 8.0,
                   width: double.infinity,
@@ -349,7 +416,8 @@ class _CaptacionState extends State<Captacion> {
                   controller: jefeFamiliaController,
                   decoration: InputDecoration(
                     hintText: 'Ingresa el nombre completo',
-                    prefixIcon: const Icon(Icons.person, color: Color(0xFF00C1D4)),
+                    prefixIcon:
+                        const Icon(Icons.person, color: Color(0xFF00C1D4)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Color(0xFF00C1D4)),
@@ -385,7 +453,8 @@ class _CaptacionState extends State<Captacion> {
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                     hintText: 'Ingresa el teléfono',
-                    prefixIcon: const Icon(Icons.phone, color: Color(0xFF00C1D4)),
+                    prefixIcon:
+                        const Icon(Icons.phone, color: Color(0xFF00C1D4)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Color(0xFF00C1D4)),
@@ -421,7 +490,8 @@ class _CaptacionState extends State<Captacion> {
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                     hintText: 'Ingresa el teléfono',
-                    prefixIcon: const Icon(Icons.phone, color: Color(0xFF00C1D4)),
+                    prefixIcon:
+                        const Icon(Icons.phone, color: Color(0xFF00C1D4)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Color(0xFF00C1D4)),
@@ -454,7 +524,8 @@ class _CaptacionState extends State<Captacion> {
                 const SizedBox(height: 5),
                 CustomTextFieldDropdown(
                   hintText: 'Selecciona una opción',
-                  controller: comorbilidades1Controller, // Puedes usar otro controlador si es necesario
+                  controller:
+                      comorbilidades1Controller, // Puedes usar otro controlador si es necesario
                   options: ['Sí', 'No'],
                   borderColor: const Color(0xFF00C1D4),
                   borderRadius: 8.0,
@@ -472,8 +543,9 @@ class _CaptacionState extends State<Captacion> {
                 const SizedBox(height: 5),
                 CustomTextFieldDropdown(
                   hintText: 'Selecciona una opción',
-                  controller: comorbilidades2Controller, // Puedes usar otro controlador si es necesario
-                  options: ['AUTISMO', 'DIABETES', 'HIPERTENSIÓN'],
+                  controller:
+                      comorbilidades2Controller, // Puedes usar otro controlador si es necesario
+                  options: ['Diabetes', 'Hipertensión', 'Enfermedad Pulmonar'],
                   borderColor: const Color(0xFF00C1D4),
                   borderRadius: 8.0,
                   width: double.infinity,
@@ -508,7 +580,8 @@ class _CaptacionState extends State<Captacion> {
                   height: 24,
                   decoration: BoxDecoration(
                     color: const Color(0xFF00C1D4), // Fondo celeste
-                    borderRadius: BorderRadius.circular(4), // Bordes ligeramente redondeados
+                    borderRadius: BorderRadius.circular(
+                        4), // Bordes ligeramente redondeados
                   ),
                   alignment: Alignment.center,
                   child: const Text(
@@ -532,14 +605,12 @@ class _CaptacionState extends State<Captacion> {
             ),
             const SizedBox(height: 20),
 
-            // Resto del contenido de la segunda card
-
             // Fila 1: Dato de captación (selector)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Dato de Captación *',
+                  'Fuente de Captación *',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -549,7 +620,11 @@ class _CaptacionState extends State<Captacion> {
                 CustomTextFieldDropdown(
                   hintText: 'Selecciona una opción',
                   controller: datoCaptacionSelectorController,
-                  options: ['Opción A', 'Opción B', 'Opción C'], // Reemplaza con tus opciones
+                  options: [
+                    'Hospital Nacional de Niños',
+                    'Centro de Salud Masaya',
+                    'Hospital Regional de León'
+                  ], // Datos reales de Nicaragua
                   borderColor: const Color(0xFF00C1D4),
                   borderRadius: 8.0,
                   width: double.infinity,
@@ -564,7 +639,7 @@ class _CaptacionState extends State<Captacion> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Dato de Captación *',
+                  'Detalle de Captación *',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -574,8 +649,9 @@ class _CaptacionState extends State<Captacion> {
                 TextFormField(
                   controller: datoCaptacionInputController,
                   decoration: InputDecoration(
-                    hintText: 'Ingrese datos de la captación',
-                    prefixIcon: const Icon(Icons.text_fields, color: Color(0xFF00C1D4)),
+                    hintText: 'Ingrese detalles de la captación',
+                    prefixIcon:
+                        const Icon(Icons.text_fields, color: Color(0xFF00C1D4)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Color(0xFF00C1D4)),
@@ -599,7 +675,7 @@ class _CaptacionState extends State<Captacion> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Dato de Captación *',
+                  'Método de Captación *',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -609,7 +685,11 @@ class _CaptacionState extends State<Captacion> {
                 CustomTextFieldDropdown(
                   hintText: 'Selecciona una opción',
                   controller: datoCaptacionSelectorController,
-                  options: ['Opción X', 'Opción Y', 'Opción Z'], // Reemplaza con tus opciones
+                  options: [
+                    'Referido por Hospital',
+                    'Campaña de Salud',
+                    'Visita Domiciliaria'
+                  ], // Datos reales de Nicaragua
                   borderColor: const Color(0xFF00C1D4),
                   borderRadius: 8.0,
                   width: double.infinity,
@@ -624,7 +704,7 @@ class _CaptacionState extends State<Captacion> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Dato de Captación *',
+                  'Buscar paciente por nombre *',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -635,7 +715,8 @@ class _CaptacionState extends State<Captacion> {
                   controller: busquedaNombreController,
                   decoration: InputDecoration(
                     hintText: 'Realizar búsqueda por nombre',
-                    prefixIcon: const Icon(Icons.search, color: Color(0xFF00C1D4)),
+                    prefixIcon:
+                        const Icon(Icons.search, color: Color(0xFF00C1D4)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Color(0xFF00C1D4)),
@@ -659,7 +740,7 @@ class _CaptacionState extends State<Captacion> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Dato de Captación *',
+                  'Teléfono del jefe de familia *',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -671,7 +752,8 @@ class _CaptacionState extends State<Captacion> {
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                     hintText: 'Ingresa el teléfono del jefe de familia',
-                    prefixIcon: const Icon(Icons.phone, color: Color(0xFF00C1D4)),
+                    prefixIcon:
+                        const Icon(Icons.phone, color: Color(0xFF00C1D4)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Color(0xFF00C1D4)),
@@ -695,7 +777,7 @@ class _CaptacionState extends State<Captacion> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Dato de Captación *',
+                  'Canal de Captación *',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -705,7 +787,11 @@ class _CaptacionState extends State<Captacion> {
                 CustomTextFieldDropdown(
                   hintText: 'Selecciona una opción',
                   controller: datoCaptacionSelectorController,
-                  options: ['Opción A', 'Opción B', 'Opción C'], // Reemplaza con tus opciones
+                  options: [
+                    'Referido por Médico',
+                    'Campaña de Vacunación',
+                    'Consulta Externa'
+                  ], // Datos reales de Nicaragua
                   borderColor: const Color(0xFF00C1D4),
                   borderRadius: 8.0,
                   width: double.infinity,
@@ -720,7 +806,7 @@ class _CaptacionState extends State<Captacion> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Dato de Captación *',
+                  'Buscar paciente por nombre *',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -731,7 +817,8 @@ class _CaptacionState extends State<Captacion> {
                   controller: busquedaNombreController,
                   decoration: InputDecoration(
                     hintText: 'Realizar búsqueda por nombre',
-                    prefixIcon: const Icon(Icons.search, color: Color(0xFF00C1D4)),
+                    prefixIcon:
+                        const Icon(Icons.search, color: Color(0xFF00C1D4)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Color(0xFF00C1D4)),
@@ -767,7 +854,7 @@ class _CaptacionState extends State<Captacion> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Título de la Card
+            // Título de la Card Modificado para la Tercera Card
             Row(
               children: [
                 Container(
@@ -775,7 +862,8 @@ class _CaptacionState extends State<Captacion> {
                   height: 24,
                   decoration: BoxDecoration(
                     color: const Color(0xFF00C1D4), // Fondo celeste
-                    borderRadius: BorderRadius.circular(4), // Bordes ligeramente redondeados
+                    borderRadius: BorderRadius.circular(
+                        4), // Bordes ligeramente redondeados
                   ),
                   alignment: Alignment.center,
                   child: const Text(
@@ -807,7 +895,7 @@ class _CaptacionState extends State<Captacion> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Dato de notificación *',
+                        'Tipo de Notificación *',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -817,7 +905,11 @@ class _CaptacionState extends State<Captacion> {
                       CustomTextFieldDropdown(
                         hintText: 'Selecciona una opción',
                         controller: datoNotificacion1Controller,
-                        options: ['Opción 1', 'Opción 2', 'Opción 3'], // Reemplaza con tus opciones
+                        options: [
+                          'Laboratorio',
+                          'Hospital',
+                          'Centro de Salud'
+                        ], // Datos reales de Nicaragua
                         borderColor: const Color(0xFF00C1D4),
                         borderRadius: 8.0,
                         width: double.infinity,
@@ -832,7 +924,7 @@ class _CaptacionState extends State<Captacion> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Dato de notificación *',
+                        'Origen de Notificación *',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -842,7 +934,11 @@ class _CaptacionState extends State<Captacion> {
                       CustomTextFieldDropdown(
                         hintText: 'Selecciona una opción',
                         controller: datoNotificacion2Controller,
-                        options: ['Opción A', 'Opción B', 'Opción C'], // Reemplaza con tus opciones
+                        options: [
+                          'Sistema Nacional de Salud',
+                          'Organización No Gubernamental',
+                          'Campaña de Salud Pública'
+                        ], // Datos reales de Nicaragua
                         borderColor: const Color(0xFF00C1D4),
                         borderRadius: 8.0,
                         width: double.infinity,
@@ -860,7 +956,7 @@ class _CaptacionState extends State<Captacion> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Dato de notificación *',
+                  'Estado de la Notificación *',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -870,7 +966,11 @@ class _CaptacionState extends State<Captacion> {
                 CustomTextFieldDropdown(
                   hintText: 'Selecciona una opción',
                   controller: datoNotificacion3Controller,
-                  options: ['Opción X', 'Opción Y', 'Opción Z'], // Reemplaza con tus opciones
+                  options: [
+                    'Pendiente',
+                    'En Proceso',
+                    'Finalizado'
+                  ], // Datos reales de Nicaragua
                   borderColor: const Color(0xFF00C1D4),
                   borderRadius: 8.0,
                   width: double.infinity,
@@ -885,7 +985,7 @@ class _CaptacionState extends State<Captacion> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Dato de notificación *',
+                  'Descripción de la Notificación *',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -895,8 +995,9 @@ class _CaptacionState extends State<Captacion> {
                 TextFormField(
                   controller: datoNotificacion4Controller,
                   decoration: InputDecoration(
-                    hintText: 'Ingrese dato de notificación',
-                    prefixIcon: const Icon(Icons.text_fields, color: Color(0xFF00C1D4)),
+                    hintText: 'Ingrese descripción de la notificación',
+                    prefixIcon:
+                        const Icon(Icons.text_fields, color: Color(0xFF00C1D4)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Color(0xFF00C1D4)),
@@ -923,7 +1024,7 @@ class _CaptacionState extends State<Captacion> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Dato de notificación *',
+                        'Prioridad de Notificación *',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -933,7 +1034,11 @@ class _CaptacionState extends State<Captacion> {
                       CustomTextFieldDropdown(
                         hintText: 'Selecciona una opción',
                         controller: datoNotificacion5Controller,
-                        options: ['Opción 4', 'Opción 5', 'Opción 6'], // Reemplaza con tus opciones
+                        options: [
+                          'Alta',
+                          'Media',
+                          'Baja'
+                        ], // Datos reales de Nicaragua
                         borderColor: const Color(0xFF00C1D4),
                         borderRadius: 8.0,
                         width: double.infinity,
@@ -948,7 +1053,7 @@ class _CaptacionState extends State<Captacion> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Dato de notificación *',
+                        'Responsable de Notificación *',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -958,7 +1063,11 @@ class _CaptacionState extends State<Captacion> {
                       CustomTextFieldDropdown(
                         hintText: 'Selecciona una opción',
                         controller: datoNotificacion2Controller,
-                        options: ['Opción A', 'Opción B', 'Opción C'], // Reemplaza con tus opciones
+                        options: [
+                          'Médico',
+                          'Enfermera',
+                          'Personal Administrativo'
+                        ], // Datos reales de Nicaragua
                         borderColor: const Color(0xFF00C1D4),
                         borderRadius: 8.0,
                         width: double.infinity,
@@ -976,134 +1085,7 @@ class _CaptacionState extends State<Captacion> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Dato de notificación *',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                TextFormField(
-                  controller: busquedaNombreNotificacion1Controller,
-                  decoration: InputDecoration(
-                    hintText: 'Realizar búsqueda por nombre',
-                    prefixIcon: const Icon(Icons.search, color: Color(0xFF00C1D4)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Fila 6: Dato de notificación (campo de texto: "Ingresa el teléfono del jefe de familia")
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Dato de notificación *',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                TextFormField(
-                  controller: telefonoJefeFamiliaNotificacionController,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    hintText: 'Ingresa el teléfono del jefe de familia',
-                    prefixIcon: const Icon(Icons.phone, color: Color(0xFF00C1D4)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Fila 7: Dato de notificación (selector) y Dato de notificación (selector)
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Dato de notificación *',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      CustomTextFieldDropdown(
-                        hintText: 'Selecciona una opción',
-                        controller: datoNotificacion1Controller,
-                        options: ['Opción 1', 'Opción 2', 'Opción 3'], // Reemplaza con tus opciones
-                        borderColor: const Color(0xFF00C1D4),
-                        borderRadius: 8.0,
-                        width: double.infinity,
-                        height: 55.0,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Dato de notificación *',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      CustomTextFieldDropdown(
-                        hintText: 'Selecciona una opción',
-                        controller: datoNotificacion2Controller,
-                        options: ['Opción A', 'Opción B', 'Opción C'], // Reemplaza con tus opciones
-                        borderColor: const Color(0xFF00C1D4),
-                        borderRadius: 8.0,
-                        width: double.infinity,
-                        height: 55.0,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Fila 8: Dato de notificación (campo de búsqueda: "Realizar búsqueda por nombre")
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Dato de notificación *',
+                  'Buscar responsable por nombre *',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -1114,7 +1096,8 @@ class _CaptacionState extends State<Captacion> {
                   controller: busquedaNombreNotificacion2Controller,
                   decoration: InputDecoration(
                     hintText: 'Realizar búsqueda por nombre',
-                    prefixIcon: const Icon(Icons.search, color: Color(0xFF00C1D4)),
+                    prefixIcon:
+                        const Icon(Icons.search, color: Color(0xFF00C1D4)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Color(0xFF00C1D4)),
@@ -1137,6 +1120,462 @@ class _CaptacionState extends State<Captacion> {
     );
   }
 
+  // Método para construir la cuarta card
+  Widget _buildFourthCard() {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: Color(0xFF00C1D4), width: 1),
+      ),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Título de la Card
+            Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00C1D4), // Fondo celeste
+                    borderRadius: BorderRadius.circular(
+                        4), // Bordes ligeramente redondeados
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    '4',
+                    style: TextStyle(
+                      color: Colors.white, // Texto blanco dentro del cuadrado
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8), // Espacio entre el número y el texto
+                const Text(
+                  'Datos de Laboratorio',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF00C1D4), // Texto en color celeste
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Fila 1: Dato de laboratorio (selector) y Dato de laboratorio (selector)
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Tipo de Laboratorio *',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      CustomTextFieldDropdown(
+                        hintText: 'Selecciona una opción',
+                        controller: datoLaboratorio1Controller,
+                        options: [
+                          'Laboratorio Central',
+                          'Laboratorio Regional Masaya',
+                          'Laboratorio Comunitario Jinotega'
+                        ], // Datos reales de Nicaragua
+                        borderColor: const Color(0xFF00C1D4),
+                        borderRadius: 8.0,
+                        width: double.infinity,
+                        height: 55.0,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Estado del Laboratorio *',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      CustomTextFieldDropdown(
+                        hintText: 'Selecciona una opción',
+                        controller: datoLaboratorio2Controller,
+                        options: [
+                          'Operativo',
+                          'En Mantenimiento',
+                          'Fuera de Servicio'
+                        ], // Datos reales de Nicaragua
+                        borderColor: const Color(0xFF00C1D4),
+                        borderRadius: 8.0,
+                        width: double.infinity,
+                        height: 55.0,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Fila 2: Dato de laboratorio (selector)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Área de Laboratorio *',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                CustomTextFieldDropdown(
+                  hintText: 'Selecciona una opción',
+                  controller: datoLaboratorio3Controller,
+                  options: [
+                    'Microbiología',
+                    'Hematoanálisis',
+                    'Química Clínica'
+                  ], // Datos reales de Nicaragua
+                  borderColor: const Color(0xFF00C1D4),
+                  borderRadius: 8.0,
+                  width: double.infinity,
+                  height: 55.0,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Fila 3: Dato de laboratorio (campo de texto: "Ingrese dato de laboratorio")
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Descripción del Laboratorio *',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                TextFormField(
+                  controller: datoLaboratorio4Controller,
+                  decoration: InputDecoration(
+                    hintText: 'Ingrese descripción del laboratorio',
+                    prefixIcon:
+                        const Icon(Icons.text_fields, color: Color(0xFF00C1D4)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Fila 4: Dato de laboratorio (selector) y Dato de laboratorio (selector)
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Tipo de Muestra *',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      CustomTextFieldDropdown(
+                        hintText: 'Selecciona una opción',
+                        controller: datoLaboratorioSelectorController,
+                        options: [
+                          'Sangre',
+                          'Orina',
+                          'Espesamento de Sangre'
+                        ], // Datos reales de Nicaragua
+                        borderColor: const Color(0xFF00C1D4),
+                        borderRadius: 8.0,
+                        width: double.infinity,
+                        height: 55.0,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Método de Análisis *',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      CustomTextFieldDropdown(
+                        hintText: 'Selecciona una opción',
+                        controller: datoLaboratorio2Controller,
+                        options: [
+                          'Espectrofotometría',
+                          'Cromatografía',
+                          'PCR (Reacción en Cadena de la Polimerasa)'
+                        ], // Datos reales de Nicaragua
+                        borderColor: const Color(0xFF00C1D4),
+                        borderRadius: 8.0,
+                        width: double.infinity,
+                        height: 55.0,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Fila 5: Dato de laboratorio (campo de búsqueda: "Realizar búsqueda por nombre")
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Buscar laboratorio por nombre *',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                TextFormField(
+                  controller: busquedaNombreLaboratorio1Controller,
+                  decoration: InputDecoration(
+                    hintText: 'Realizar búsqueda por nombre',
+                    prefixIcon:
+                        const Icon(Icons.search, color: Color(0xFF00C1D4)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Fila 6: Dato de laboratorio (campo de texto: "Ingresa el teléfono del jefe de familia")
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Teléfono del jefe de familia *',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                TextFormField(
+                  controller: telefonoJefeFamiliaLaboratorioController,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    hintText: 'Ingresa el teléfono del jefe de familia',
+                    prefixIcon:
+                        const Icon(Icons.phone, color: Color(0xFF00C1D4)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Fila 7: Dato de laboratorio (selector) y Dato de laboratorio (selector)
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Tipo de Análisis *',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      CustomTextFieldDropdown(
+                        hintText: 'Selecciona una opción',
+                        controller: datoLaboratorio1Controller,
+                        options: [
+                          'Bioquímico',
+                          'Hematológico',
+                          'Serológico'
+                        ], // Datos reales de Nicaragua
+                        borderColor: const Color(0xFF00C1D4),
+                        borderRadius: 8.0,
+                        width: double.infinity,
+                        height: 55.0,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Método de Prueba *',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      CustomTextFieldDropdown(
+                        hintText: 'Selecciona una opción',
+                        controller: datoLaboratorio2Controller,
+                        options: [
+                          'ELISA',
+                          'Western Blot',
+                          'PCR'
+                        ], // Datos reales de Nicaragua
+                        borderColor: const Color(0xFF00C1D4),
+                        borderRadius: 8.0,
+                        width: double.infinity,
+                        height: 55.0,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Fila 8: Dato de laboratorio (campo de búsqueda: "Realizar búsqueda por nombre")
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Buscar laboratorio por nombre *',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                TextFormField(
+                  controller: busquedaNombreLaboratorio2Controller,
+                  decoration: InputDecoration(
+                    hintText: 'Realizar búsqueda por nombre',
+                    prefixIcon:
+                        const Icon(Icons.search, color: Color(0xFF00C1D4)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF00C1D4)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Botón Guardar con animación de carga
+            Center(
+              child: ElevatedButton(
+                onPressed: _isSaving ? null : _guardarDatos,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00C1D4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: _isSaving
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                              strokeWidth: 2,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            'Guardando...',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                        ],
+                      )
+                    : const Text(
+                        'Guardar',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1147,9 +1586,10 @@ class _CaptacionState extends State<Captacion> {
         leading: Padding(
           padding: const EdgeInsets.only(top: 13.0),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF1877F2), size: 32),
+            icon: const Icon(Icons.arrow_back,
+                color: Color(0xFF1877F2), size: 32),
             onPressed: () {
-              Navigator.pushNamed(context, '/captacion_busqeda_persona');
+              Navigator.pushNamed(context, '/captacion_busqueda_persona');
             },
           ),
         ),
@@ -1245,13 +1685,15 @@ class _CaptacionState extends State<Captacion> {
                 // Indicadores de página
                 Row(
                   children: [
-                    for (int i = 0; i < 3; i++) // Ahora tres cards
+                    for (int i = 0; i < 4; i++) // Ahora cuatro cards
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Icon(
                           Icons.circle,
                           size: 12,
-                          color: _currentCardIndex == i ? Colors.blue : Colors.grey,
+                          color: _currentCardIndex == i
+                              ? Colors.blue
+                              : Colors.grey,
                         ),
                       ),
                   ],
@@ -1259,7 +1701,9 @@ class _CaptacionState extends State<Captacion> {
 
                 // Botón "SIGUIENTE"
                 ElevatedButton(
-                  onPressed: _currentCardIndex < 2 ? _nextCard : null, // Deshabilitar en la última card
+                  onPressed: _currentCardIndex < 3
+                      ? _nextCard
+                      : null, // Deshabilitar en la última card
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00C1D4),
                     shape: RoundedRectangleBorder(
