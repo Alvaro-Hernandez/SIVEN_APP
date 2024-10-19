@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:siven_app/widgets/jornada_card.dart'; // Importación de tu widget JornadaCard
 
 class JornadasScreen extends StatefulWidget {
@@ -38,112 +37,78 @@ class _JornadasScreenState extends State<JornadasScreen> {
     },
   ];
 
-  // Función para filtrar las jornadas según la fecha seleccionada
-  List<Map<String, dynamic>> getFilteredJornadas() {
-    return jornadas.where((jornada) => isSameDay(jornada['date'], _selectedDay)).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          // Calendario
-          TableCalendar(
-            locale: 'es_ES',
-            firstDay: DateTime(2024, 10, 1),
-            lastDay: DateTime(2024, 10, 31),
-            focusedDay: _selectedDay,
-            calendarFormat: CalendarFormat.month,
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            selectedDayPredicate: (day) => isSameDay(day, _selectedDay),
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-              });
+    final size = MediaQuery.of(context).size; // Obtener el tamaño de la pantalla
+
+    return Scaffold(
+      backgroundColor: Color(0xFFFBFBFB),  // Fondo gris claro
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(top: 13.0),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Color(0xFF1877F2), size: 32),
+            onPressed: () {
+              Navigator.pop(context); // Navegación hacia atrás
             },
-            calendarStyle: CalendarStyle(
-              selectedDecoration: BoxDecoration(
-                color: Colors.purple,
-                shape: BoxShape.circle,
-              ),
-              todayDecoration: BoxDecoration(
-                color: Colors.purple.shade300,
-                shape: BoxShape.circle,
-              ),
-              markersMaxCount: 1,
-              markerDecoration: BoxDecoration(
-                color: Colors.purple.shade800,
-                shape: BoxShape.circle,
+          ),
+        ),
+        title: const Text(
+          'Gestión de Jornadas',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Encabezado
+            const Text(
+              'Resumen de Jornadas',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.purple),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                itemCount: jornadas.length,
+                itemBuilder: (context, index) {
+                  final jornada = jornadas[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Container(
+                      width: size.width * 0.95,  // Limitar el ancho a un 95% de la pantalla
+                      decoration: BoxDecoration(
+                        color: Colors.white,  // Fondo blanco para las tarjetas
+                        borderRadius: BorderRadius.circular(12),  // Bordes redondeados
+                        border: Border.all(color: Colors.purple, width: 1.5),  // Borde morado
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: Offset(0, 3),  // Desplazamiento de la sombra
+                          ),
+                        ],
+                      ),
+                      child: JornadaCard(
+                        jornadaNumero: 'Jornada No.${index + 145}', // Número dinámico para las jornadas
+                        numeroCasos: jornada['numeroCasos'],
+                        ubicacion: jornada['ubicacion'],
+                        fechaInicio: jornada['fechaInicio'],
+                        fechaFin: jornada['fechaFin'],
+                        responsables: jornada['responsables'],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-            headerStyle: HeaderStyle(
-              titleTextStyle: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
-              formatButtonVisible: false,
-              leftChevronIcon: Icon(Icons.chevron_left, color: Colors.purple),
-              rightChevronIcon: Icon(Icons.chevron_right, color: Colors.purple),
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Filtros
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              DropdownButton<String>(
-                items: ['Estado', 'Pendiente', 'Completado']
-                    .map((String value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        ))
-                    .toList(),
-                onChanged: (_) {},
-                hint: Text('Estado', style: TextStyle(color: Colors.purple)),
-              ),
-              DropdownButton<String>(
-                items: ['Período', 'Última semana', 'Último mes']
-                    .map((String value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        ))
-                    .toList(),
-                onChanged: (_) {},
-                hint: Text('Período', style: TextStyle(color: Colors.purple)),
-              ),
-              DropdownButton<String>(
-                items: ['Localización', 'Chontales', 'Managua', 'León']
-                    .map((String value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        ))
-                    .toList(),
-                onChanged: (_) {},
-                hint: Text('Localización', style: TextStyle(color: Colors.purple)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          // Jornadas dinámicas
-          Expanded(
-            child: ListView.builder(
-              itemCount: getFilteredJornadas().length,
-              itemBuilder: (context, index) {
-                final jornada = getFilteredJornadas()[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: JornadaCard(
-                    jornadaNumero: 'Jornada No.${index + 145}', // Número dinámico para las jornadas
-                    numeroCasos: jornada['numeroCasos'],
-                    ubicacion: jornada['ubicacion'],
-                    fechaInicio: jornada['fechaInicio'],
-                    fechaFin: jornada['fechaFin'],
-                    responsables: jornada['responsables'],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -104,6 +104,9 @@ class Home extends StatelessWidget {
                           else if (cardItems[index].text == "ALERTAS TEMPRANAS") {
                             Navigator.pushNamed(context, '/alerta_temprana');
                           }
+                          else if(cardItems[index].text == "GESTIÓN DE JORNADAS DE VIGILANCIA EPIDEMIOLÓGICA"){
+                            Navigator.pushNamed(context, '/jornadas');
+                          }
                           // Puedes agregar más condiciones para otras tarjetas si lo deseas
                         },
                       );

@@ -23,6 +23,7 @@ class JornadaCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
+        color: Colors.white,
         border: Border.all(color: Colors.purple, width: 2),
         borderRadius: BorderRadius.circular(12),
       ),
