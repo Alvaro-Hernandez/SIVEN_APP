@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart';
-import 'package:siven_app/widgets/version.dart'; // Importa el widget reutilizable
+import 'package:siven_app/widgets/version.dart';
+import 'package:siven_app/widgets/TextField.dart'; // Importamos el widget reutilizable
+import 'package:siven_app/widgets/custom_date_field.dart'; // Importamos el nuevo widget de fecha
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -17,30 +18,15 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
 
-  DateTime? _selectedStartDate;
-  DateTime? _selectedEndDate;
-
   // Listas de opciones
   final List<String> silaisOptions = ['SILAIS Managua', 'SILAIS Chontales'];
   final List<String> eventoOptions = ['COVID-19', 'Dengue'];
+  final List<String> unidadSaludOptions = ['Unidad de Salud 1', 'Unidad de Salud 2'];
 
   // Controladores para Autocomplete
   final TextEditingController _silaisController = TextEditingController();
+  final TextEditingController _unidadSaludController = TextEditingController();
   final TextEditingController _eventoController = TextEditingController();
-
-  Future<void> _selectDate(BuildContext context, TextEditingController controller, DateTime? initialDate) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (pickedDate != null) {
-      setState(() {
-        controller.text = DateFormat('dd/MM/yyyy').format(pickedDate);
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +42,6 @@ class _SearchScreenState extends State<SearchScreen> {
           child: IconButton(
             icon: const Icon(Icons.arrow_back, color: Color(0xFF1877F2), size: 32),
             onPressed: () {
-              // Navegación a /home
               Navigator.pushNamed(context, '/home');
             },
           ),
@@ -99,97 +84,64 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // Campos de Fecha de inicio y Fecha de fin con selector de fecha
+                    // Campos de Fecha de inicio y Fecha de fin con el widget reutilizable CustomDateField
                     Row(
                       children: [
                         Expanded(
-                          child: TextFormField(
+                          child: CustomDateField(
+                            hintText: 'Fecha de Inicio',
                             controller: _startDateController,
-                            readOnly: true,
-                            onTap: () {
-                              _selectDate(context, _startDateController, _selectedStartDate);
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Fecha de Inicio',
-                              suffixIcon: const Icon(Icons.calendar_today, size: 20, color: Color(0xFF4A4A4A)),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: const BorderSide(color: Color(0xFFF7941D), width: 1.0),
-                              ),
-                            ),
+                            borderColor: salmonColor,
+                            iconColor: Colors.grey,
+                            borderWidth: 2.0,
+                            borderRadius: 5.0,
                           ),
                         ),
                         const SizedBox(width: 20),
                         Expanded(
-                          child: TextFormField(
+                          child: CustomDateField(
+                            hintText: 'Fecha de Fin',
                             controller: _endDateController,
-                            readOnly: true,
-                            onTap: () {
-                              _selectDate(context, _endDateController, _selectedEndDate);
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Fecha de Fin',
-                              suffixIcon: const Icon(Icons.calendar_today, size: 20, color: Color(0xFF4A4A4A)),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: const BorderSide(color: Color(0xFFF7941D), width: 1.0),
-                              ),
-                            ),
+                            borderColor: salmonColor,
+                            iconColor: Colors.grey,
+                            borderWidth: 2.0,
+                            borderRadius: 5.0,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 20),
 
-                    // Autocomplete SILAIS
-                    Autocomplete<String>(
-                      optionsBuilder: (TextEditingValue textEditingValue) {
-                        return silaisOptions.where((String option) {
-                          return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
-                        });
-                      },
-                      onSelected: (String selection) {
-                        _silaisController.text = selection;
-                      },
-                      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                        return TextFormField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          decoration: InputDecoration(
-                            hintText: 'SILAIS de la captación',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5),
-                              borderSide: const BorderSide(color: Color(0xFFF7941D), width: 1.0),
-                            ),
-                          ),
-                        );
-                      },
+                    // Autocomplete SILAIS reutilizando el widget CustomTextFieldDropdown
+                    CustomTextFieldDropdown(
+                      hintText: 'SILAIS de la captación',
+                      controller: _silaisController,
+                      options: silaisOptions,
+                      borderColor: salmonColor,
+                      borderWidth: 2.0,
+                      borderRadius: 5.0,
                     ),
                     const SizedBox(height: 20),
 
-                    // Autocomplete Evento de Salud
-                    Autocomplete<String>(
-                      optionsBuilder: (TextEditingValue textEditingValue) {
-                        return eventoOptions.where((String option) {
-                          return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
-                        });
-                      },
-                      onSelected: (String selection) {
-                        _eventoController.text = selection;
-                      },
-                      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                        return TextFormField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          decoration: InputDecoration(
-                            hintText: 'Evento de salud',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5),
-                              borderSide: const BorderSide(color: Color(0xFFF7941D), width: 1.0),
-                            ),
-                          ),
-                        );
-                      },
+                    // Autocomplete Unidad de Salud reutilizando el widget CustomTextFieldDropdown
+                    CustomTextFieldDropdown(
+                      hintText: 'Unidad de Salud',
+                      controller: _unidadSaludController,
+                      options: unidadSaludOptions,
+                      borderColor: salmonColor,
+                      borderWidth: 2.0,
+                      borderRadius: 5.0,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Autocomplete Evento de Salud reutilizando el widget CustomTextFieldDropdown
+                    CustomTextFieldDropdown(
+                      hintText: 'Evento de salud',
+                      controller: _eventoController,
+                      options: eventoOptions,
+                      borderColor: salmonColor,
+                      borderWidth: 2.0,
+                      borderRadius: 5.0,
                     ),
                     const SizedBox(height: 30),
 
@@ -197,12 +149,11 @@ class _SearchScreenState extends State<SearchScreen> {
                     ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          // Navegación a resultados_busqueda
                           Navigator.pushNamed(context, '/resultados_busqueda');
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF7941D),
+                        backgroundColor: salmonColor,
                         padding: const EdgeInsets.symmetric(vertical: 15),
                         minimumSize: const Size(200, 50),
                       ),
@@ -218,11 +169,12 @@ class _SearchScreenState extends State<SearchScreen> {
                         _startDateController.clear();
                         _endDateController.clear();
                         _silaisController.clear();
+                        _unidadSaludController.clear();
                         _eventoController.clear();
                       },
                       child: const Text(
                         'LIMPIAR',
-                        style: TextStyle(fontSize: 14, color: Color(0xFFF7941D)),
+                        style: TextStyle(fontSize: 14, color: salmonColor),
                       ),
                     ),
                   ],

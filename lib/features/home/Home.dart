@@ -1,3 +1,5 @@
+// lib/screens/home.dart
+
 import 'package:flutter/material.dart';
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart';
 import 'package:siven_app/widgets/custom_card.dart'; // Asegúrate que esta ruta sea correcta
@@ -90,10 +92,15 @@ class Home extends StatelessWidget {
                         item: cardItems[index],
                         screenHeight: screenSize.height,
                         onTap: () {
-                          // Navegación específica para "Reportes y Análisis"
+                          // Navegación específica para "REPORTES Y ANÁLISIS"
                           if (cardItems[index].text == "REPORTES Y ANÁLISIS") {
                             Navigator.pushNamed(context, '/FiltrarReporte');
                           }
+                          // Navegación específica para "ALERTAS TEMPRANAS"
+                          else if (cardItems[index].text == "ALERTAS TEMPRANAS") {
+                            Navigator.pushNamed(context, '/alerta_temprana');
+                          }
+                          // Puedes agregar más condiciones para otras tarjetas si lo deseas
                         },
                       );
                     },

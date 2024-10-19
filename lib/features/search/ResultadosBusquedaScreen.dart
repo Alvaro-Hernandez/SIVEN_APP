@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart';
-import 'package:siven_app/widgets/Version.dart'; // Importa el nuevo widget de versión
+import 'package:siven_app/widgets/Version.dart';
+import 'package:siven_app/widgets/card_persona.dart'; // Importa el widget reutilizable para las cards
 import 'package:flutter/rendering.dart';
+import 'package:siven_app/widgets/filtro_persona.dart'; 
 
 class ResultadosBusquedaScreen extends StatefulWidget {
   const ResultadosBusquedaScreen({Key? key}) : super(key: key);
@@ -73,12 +75,12 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
 
                       // Texto Red de Servicio
                       const RedDeServicio(),
-                      const SizedBox(height: 30), // Reduje el espacio
+                      const SizedBox(height: 30),
 
                       // Texto e Ícono "Resultado de búsqueda"
                       Row(
                         children: const [
-                          Icon(Icons.search, color: naranja, size: 26), // Ícono más grande
+                          Icon(Icons.search, color: naranja, size: 26),
                           SizedBox(width: 8),
                           Text(
                             'Resultado de búsqueda',
@@ -92,61 +94,42 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                       ),
                       const SizedBox(height: 10),
 
-                      // Campo de Filtro con ícono de filtro a la izquierda
+                      // Llamada al Widget Reutilizable FiltroPersonaWidget
                       Row(
                         children: [
                           Expanded(
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.filter_list, size: 24, color: grisOscuro), // Ícono más grande
-                                hintText: 'Filtro por datos de la persona',
-                                contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: const BorderSide(
-                                    color: naranja, // Bordes color naranja
-                                    width: 1.0,
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: const BorderSide(
-                                    color: naranja,
-                                    width: 1.0,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: const BorderSide(
-                                    color: naranja,
-                                    width: 1.5,
-                                  ),
-                                ),
-                              ),
+                            child: FiltroPersonaWidget(
+                              hintText: 'Filtro por datos de la persona',
+                              colorBorde: naranja,
+                              colorIcono: grisOscuro,
+                              colorTexto: grisOscuro,
+                              onChanged: (valor) {
+                                print('Texto ingresado: $valor');
+                              },
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20), // Reduje el espacio
+                      const SizedBox(height: 20),
 
-                      // Botones "Generar Reporte de Esta Lista" y "Generar Análisis de Esta Lista" con íconos y fondo blanco
+                      // Botones "Generar Reporte de Esta Lista" y "Generar Análisis de Esta Lista"
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () {
-                                // Acción para generar reporte (vacía)
+                                // Acción para generar reporte
                               },
-                              icon: const Icon(Icons.article, color: naranja, size: 40), // Ícono más grande
+                              icon: const Icon(Icons.article, color: naranja, size: 40),
                               label: const Text(
                                 'Generar Reporte de Esta Lista',
                                 style: TextStyle(color: naranja),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white, // Fondo blanco
-                                side: const BorderSide(color: naranja), // Borde color naranja
-                                padding: const EdgeInsets.symmetric(vertical: 10), // Altura reducida
+                                backgroundColor: Colors.white,
+                                side: const BorderSide(color: naranja),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
                                 minimumSize: const Size(150, 40),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5),
@@ -154,21 +137,22 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10), // Espacio entre los botones
+                          const SizedBox(width: 10),
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () {
-                                // Acción para generar análisis (vacía)
+                                // Navegación a la pantalla de análisis
+                                Navigator.pushNamed(context, '/analisis');
                               },
-                              icon: const Icon(Icons.analytics, color: naranja, size: 40), // Ícono más grande
+                              icon: const Icon(Icons.analytics, color: naranja, size: 40),
                               label: const Text(
                                 'Generar Análisis de Esta Lista',
                                 style: TextStyle(color: naranja),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white, // Fondo blanco
-                                side: const BorderSide(color: naranja), // Borde color naranja
-                                padding: const EdgeInsets.symmetric(vertical: 10), // Altura reducida
+                                backgroundColor: Colors.white,
+                                side: const BorderSide(color: naranja),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
                                 minimumSize: const Size(150, 40),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5),
@@ -178,85 +162,26 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 0), // Eliminado el espacio extra
+                      const SizedBox(height: 0),
 
-                      // Listado de resultados (cards)
+                      // Listado de resultados (cards reutilizables)
                       ListView.builder(
-                        shrinkWrap: true, // Para que la lista ocupe solo el espacio necesario
+                        shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: 10, // Se agregaron más registros
+                        itemCount: 10, // Simulando 10 resultados
                         itemBuilder: (context, index) {
-                          return Card(
-                            color: Colors.white, // Fondo blanco de la card
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
-                              side: BorderSide(
-                                color: naranja, // Bordes color naranja
-                                width: 1.0,
-                              ),
-                            ),
-                            margin: const EdgeInsets.symmetric(vertical: 8), // Reducido el margen vertical
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Aumenta el padding
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Identificación: 00107095700${index}3H',
-                                    style: const TextStyle(
-                                      color: grisOscuro,
-                                      fontSize: 14, // Texto color gris oscuro
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    'Código expediente: 408EUBRM0705850${index}',
-                                    style: const TextStyle(
-                                      color: grisOscuro,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    'Nombre completo: Persona ${index + 1}',
-                                    style: const TextStyle(
-                                      color: grisOscuro,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  const Text(
-                                    'Municipio/Departamento: Juigalpa/Chontales',
-                                    style: TextStyle(
-                                      color: grisOscuro,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-
-                                  // Botón Generar Reporte en cada card (más ancho y sin icono)
-                                  Center(
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        // Acción para generar reporte individual (vacía)
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: naranja,
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
-                                        minimumSize: const Size(300, 40), // Botón más ancho
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      child: const Text(
-                                        'Generar Reporte',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          return CardPersonaWidget(
+                            identificacion: '00107095700${index}3H',
+                            expediente: '408EUBRM0705850${index}',
+                            nombre: 'Persona ${index + 1}',
+                            ubicacion: 'Juigalpa/Chontales',
+                            colorBorde: naranja,
+                            colorBoton: naranja,
+                            textoBoton: 'Generar Reporte', // Puedes cambiarlo si lo necesitas
+                            onBotonPressed: () {
+                              // Acción al presionar el botón
+                              print('Generando reporte para Persona ${index + 1}');
+                            },
                           );
                         },
                       ),
@@ -264,11 +189,9 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                   ),
                 ),
               ),
-              // Siempre muestra el widget de versión en la parte inferior de la pantalla
               const VersionWidget(),
             ],
           ),
-          // Encabezado fijo, se oculta cuando se hace scroll hacia abajo, y se muestra al volver al tope
           if (_showHeader)
             Positioned(
               top: 0,
@@ -286,7 +209,6 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                         child: IconButton(
                           icon: const Icon(Icons.arrow_back, color: azulBrillante, size: 32),
                           onPressed: () {
-                            // Navegación a la pantalla FiltrarReporte
                             Navigator.pushNamed(context, '/FiltrarReporte');
                           },
                         ),
