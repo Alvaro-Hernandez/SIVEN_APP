@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:siven_app/widgets/version.dart'; // Widget reutilizado
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart'; // Widget reutilizado
 import 'package:siven_app/widgets/card_persona.dart'; // Widget CardPersonaWidget reutilizado
-import 'package:siven_app/widgets/filtro_persona.dart'; // Widget FiltroPersonaWidget reutilizado 
+import 'package:siven_app/widgets/filtro_persona.dart'; // Widget FiltroPersonaWidget reutilizado
 
 class CaptacionResultadoBusqueda extends StatelessWidget {
   const CaptacionResultadoBusqueda({Key? key}) : super(key: key);
@@ -58,7 +58,7 @@ class CaptacionResultadoBusqueda extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                 // Lista de resultados de búsqueda usando CardPersonaWidget
+                  // Lista de resultados de búsqueda usando CardPersonaWidget
                   Column(
                     children: [
                       CardPersonaWidget(
@@ -68,9 +68,10 @@ class CaptacionResultadoBusqueda extends StatelessWidget {
                         ubicacion: 'Juigalpa/Chontales',
                         colorBorde: const Color(0xFF00BCD4), // Color del borde turquesa
                         colorBoton: const Color(0xFF00BCD4), // Botón con fondo turquesa
-                        textoBoton: 'SELECCIONAR', // Texto personalizado del botón
+                        textoBoton: 'SELECCIONAR',
                         onBotonPressed: () {
-                          // Acción del botón
+                          // Navegación a la pantalla de información del paciente
+                          Navigator.pushNamed(context, '/captacion_inf_paciente');
                         },
                       ),
                       const SizedBox(height: 10), // Espaciado entre las tarjetas
@@ -83,7 +84,8 @@ class CaptacionResultadoBusqueda extends StatelessWidget {
                         colorBoton: const Color(0xFF00BCD4), // Botón con fondo turquesa
                         textoBoton: 'SELECCIONAR',
                         onBotonPressed: () {
-                          // Acción del botón
+                          // Navegación a la pantalla de información del paciente
+                          Navigator.pushNamed(context, '/captacion_inf_paciente');
                         },
                       ),
                       const SizedBox(height: 10), // Espaciado entre las tarjetas
@@ -96,7 +98,8 @@ class CaptacionResultadoBusqueda extends StatelessWidget {
                         colorBoton: const Color(0xFF00BCD4), // Botón con fondo turquesa
                         textoBoton: 'SELECCIONAR',
                         onBotonPressed: () {
-                          // Acción del botón
+                          // Navegación a la pantalla de información del paciente
+                          Navigator.pushNamed(context, '/captacion_inf_paciente');
                         },
                       ),
                     ],

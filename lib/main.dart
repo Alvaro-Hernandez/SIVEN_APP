@@ -9,6 +9,8 @@ import 'features/Notificationsearch/alerta_temprana.dart';
 import 'features/captacion/captacion_busqueda_persona.dart';
 import 'features/captacion/buscar_por_nombre.dart';
 import 'features/captacion/captacion_resultado_busqueda.dart';
+import 'features/captacion/inf_dt_paciente_captacion.dart';
+import 'features/captacion/Captacion.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,6 +35,8 @@ class MyApp extends StatelessWidget {
         '/captacion_busqeda_persona': (context) => CaptacionBusquedaPersona(),
         '/captacion_busqueda_por_nombre': (context) => BusquedaPorNombreScreen(),
         '/captacion_resultado_busqueda': (context) => CaptacionResultadoBusqueda(),
+        '/captacion_inf_paciente': (context) => InfoDtPacienteCaptacion(),
+        '/captacion' : (context) => Captacion(),
       },
       onUnknownRoute: (settings) => MaterialPageRoute(
         builder: (context) => Scaffold(
