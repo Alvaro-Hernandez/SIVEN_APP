@@ -144,21 +144,21 @@ class AnalisisScreen extends StatelessWidget {
                           children: [
                             Expanded(
                               child: PieChartCard(
-                                localidad: 'Juigalpa',
+                                localidad: 'Managua',
                                 porcentaje: 40,
                                 color: Color(0xFFF7941D),
                               ),
                             ),
                             Expanded(
                               child: PieChartCard(
-                                localidad: 'Acoyapa',
+                                localidad: 'Ciu. Sandino',
                                 porcentaje: 35,
                                 color: Color(0xFFFFA500),
                               ),
                             ),
                             Expanded(
                               child: PieChartCard(
-                                localidad: 'La Libertad',
+                                localidad: 'Altamira',
                                 porcentaje: 25,
                                 color: Color(0xFF4A4A4A),
                               ),
