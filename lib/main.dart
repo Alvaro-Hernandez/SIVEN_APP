@@ -6,6 +6,9 @@ import 'features/search/search_screen.dart';
 import 'features/search/ResultadosBusquedaScreen.dart';
 import 'features/search/Analisis.dart';
 import 'features/Notificationsearch/alerta_temprana.dart';
+import 'features/captacion/captacion_busqueda_persona.dart';
+import 'features/captacion/buscar_por_nombre.dart';
+import 'features/captacion/captacion_resultado_busqueda.dart';
 
 void main() {
   runApp(const MyApp());
@@ -27,6 +30,9 @@ class MyApp extends StatelessWidget {
         '/resultados_busqueda': (context) => ResultadosBusquedaScreen(), 
         '/analisis': (context) => AnalisisApp(),
         '/alerta_temprana': (context) => AlertaTemprana(),
+        '/captacion_busqeda_persona': (context) => CaptacionBusquedaPersona(),
+        '/captacion_busqueda_por_nombre': (context) => BusquedaPorNombreScreen(),
+        '/captacion_resultado_busqueda': (context) => CaptacionResultadoBusqueda(),
       },
       onUnknownRoute: (settings) => MaterialPageRoute(
         builder: (context) => Scaffold(
