@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:siven_app/widgets/version.dart'; // Importa el widget reutilizable
 import 'package:siven_app/features/red_de_servicio_screen.dart'; 
+import 'package:siven_app/core/network/auth_repository.dart'; 
+import 'package:siven_app/core/network/api_client.dart'; 
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(SivenApp());
@@ -32,20 +35,63 @@ class _LoginScreenState extends State<LoginScreen> {
   final FocusNode _usernameFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
   bool _showPassword = false;
+  bool _isLoading = false; // Para manejar el estado de carga
   String _greetingMessage = '';
+
+  // Inicializamos AuthRepository con ApiClient
+  final AuthRepository _authRepository = AuthRepository(apiClient: ApiClient(httpClient: http.Client()));
 
   @override
   void initState() {
     super.initState();
-
     // Detectar cuando el campo de contraseña obtiene el foco
     _passwordFocusNode.addListener(() {
       if (_passwordFocusNode.hasFocus && _usernameController.text.isNotEmpty) {
         setState(() {
-          _greetingMessage = '¡Hola, ${_usernameController.text}!'; // Mensaje de saludo
+          _greetingMessage = '¡Hola, ${_usernameController.text}!';
         });
       }
     });
+  }
+
+  Future<void> _handleLogin() async {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Por favor, rellene todos los campos')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Llama al método de autenticación
+      final response = await _authRepository.login(username, password);
+
+      // Guardar token en el storage (ya manejado en AuthRepository)
+      print('Login exitoso: ${response['token']}');
+
+      // Solo navega si el token es válido
+      if (response['token'] != null && response['token'].isNotEmpty) {
+        Navigator.pushNamed(context, '/red_servicio');
+      } else {
+        throw Exception('Token inválido');
+      }
+    } catch (e) {
+      // Mostrar un mensaje de error si ocurre una excepción
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error de autenticación: ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false; // Oculta el indicador de carga
+      });
+    }
   }
 
   @override
@@ -114,21 +160,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Navegar a la pantalla 'red_servicio'
-                          Navigator.pushNamed(context, '/red_servicio');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 69, 156, 255),
-                          foregroundColor: Colors.white,
-                          minimumSize: Size(290, 50), // Botón más corto
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(9.0),
-                          ),
-                        ),
-                        child: Text('SIGUIENTE'),
-                      ),
+                      _isLoading
+                          ? CircularProgressIndicator() // Mostrar indicador de carga
+                          : ElevatedButton(
+                              onPressed: _handleLogin, // Llama a la función de login
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 69, 156, 255),
+                                foregroundColor: Colors.white,
+                                minimumSize: Size(290, 50), // Botón más corto
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(9.0),
+                                ),
+                              ),
+                              child: Text('SIGUIENTE'),
+                            ),
                     ],
                   ),
                 ),
