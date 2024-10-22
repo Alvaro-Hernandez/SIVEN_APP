@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:siven_app/widgets/version.dart'; // Importa el widget reutilizable
+import 'package:siven_app/widgets/version.dart';
 import 'package:siven_app/features/red_de_servicio_screen.dart'; 
 import 'package:siven_app/core/network/auth_repository.dart'; 
 import 'package:siven_app/core/network/api_client.dart'; 
@@ -70,10 +70,8 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // Llama al método de autenticación
       final response = await _authRepository.login(username, password);
 
-      // Guardar token en el storage (ya manejado en AuthRepository)
       print('Login exitoso: ${response['token']}');
 
       // Solo navega si el token es válido
@@ -83,7 +81,6 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('Token inválido');
       }
     } catch (e) {
-      // Mostrar un mensaje de error si ocurre una excepción
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error de autenticación: ${e.toString()}')),
       );
@@ -93,6 +90,27 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
+
+    void _showForgotPasswordDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Restablecer contraseña'),
+          content: Text('Por favor, contacta con un administrador para restablecer tus credenciales.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Aceptar'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton(
-                          onPressed: () {}, // Funcionalidad vacía
+                          onPressed: _showForgotPasswordDialog, // Funcionalidad vacía
                           child: Text(
                             '¿Olvidaste tu contraseña?',
                             style: TextStyle(color: const Color.fromARGB(255, 255, 27, 27)),

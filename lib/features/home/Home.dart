@@ -28,14 +28,14 @@ class Home extends StatelessWidget {
       backgroundColor: Color(0xFF1E90FF),
     ),
     CardItem(
-      text: "GESTIÓN DE USUARIO Y PARAMETRIZACIÓN",
-      iconPath: 'lib/assets/homeicon/configuracion-2.webp',
-      backgroundColor: Color(0xFF32CD32),
-    ),
-    CardItem(
       text: "REPORTES Y ANÁLISIS",
       iconPath: 'lib/assets/homeicon/analitica-1.webp',
       backgroundColor: Color(0xFFFFA500),
+    ),
+    CardItem(
+      text: "GESTIÓN DE USUARIO Y PARAMETRIZACIÓN",
+      iconPath: 'lib/assets/homeicon/configuracion-2.webp',
+      backgroundColor: Color(0xFF32CD32),
     ),
   ];
 
@@ -103,6 +103,9 @@ class Home extends StatelessWidget {
                           // Navegación específica para "ALERTAS TEMPRANAS"
                           else if (cardItems[index].text == "ALERTAS TEMPRANAS") {
                             Navigator.pushNamed(context, '/alerta_temprana');
+                          }
+                          else if(cardItems[index].text == "GESTIÓN DE JORNADAS DE VIGILANCIA EPIDEMIOLÓGICA"){
+                            Navigator.pushNamed(context, '/jornadas');
                           }
                           // Puedes agregar más condiciones para otras tarjetas si lo deseas
                         },

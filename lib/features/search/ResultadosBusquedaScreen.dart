@@ -174,7 +174,7 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                             identificacion: '00107095700${index}3H',
                             expediente: '408EUBRM0705850${index}',
                             nombre: 'Persona ${index + 1}',
-                            ubicacion: 'Juigalpa/Chontales',
+                            ubicacion: 'Managua, Managua',
                             colorBorde: naranja,
                             colorBoton: naranja,
                             textoBoton: 'Generar Reporte', // Puedes cambiarlo si lo necesitas

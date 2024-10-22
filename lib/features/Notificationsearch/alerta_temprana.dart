@@ -60,11 +60,11 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
   List<ChartData> _getChartData() {
     if (selectedRegion == "Managua" && selectedPeriodo == "Enero") {
       return [
+        ChartData(4, 20),
         ChartData(1, 30),
-        ChartData(2, 40),
-        ChartData(3, 35),
-        ChartData(4, 50),
-        ChartData(5, 45),
+        ChartData(5, 20),
+        ChartData(3, 30),
+        ChartData(1, 45),
       ];
     } else if (selectedRegion == "RAAN" && selectedPeriodo == "Febrero") {
       return [
@@ -343,7 +343,7 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          "203.482% de Afectación",
+                          "90% de Afectación",
                           style: TextStyle(
                             color: Color(0xFFD9006C),
                             fontSize: 20, // Reducimos el tamaño de la tipografía
@@ -439,10 +439,10 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
   // Datos del gráfico de barras
   List<BarChartData> _getBarChartData() {
     return [
-      BarChartData('Cat1', 10),
-      BarChartData('Cat2', 30),
-      BarChartData('Cat3', 20),
-      BarChartData('Cat4', 50),
+      BarChartData('Influenza', 10),
+      BarChartData('Malaria', 30),
+      BarChartData('Dengue', 20),
+      BarChartData('Rabia', 50),
     ];
   }
 }

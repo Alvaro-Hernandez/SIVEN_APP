@@ -19,9 +19,9 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _endDateController = TextEditingController();
 
   // Listas de opciones
-  final List<String> silaisOptions = ['SILAIS Managua', 'SILAIS Chontales'];
-  final List<String> eventoOptions = ['COVID-19', 'Dengue'];
-  final List<String> unidadSaludOptions = ['Unidad de Salud 1', 'Unidad de Salud 2'];
+  final List<String> silaisOptions = ['SILAIS_MANAGUA', 'SILAIS_CHONTALES'];
+  final List<String> eventoOptions = ['COVID-19', 'Malaria'];
+  final List<String> unidadSaludOptions = ['UNIDAD DE SALUD LOS ROBLES', 'UNIDAD DE SALUD SAN FRANCISCO'];
 
   // Controladores para Autocomplete
   final TextEditingController _silaisController = TextEditingController();
