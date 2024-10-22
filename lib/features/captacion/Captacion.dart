@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:siven_app/widgets/version.dart'; // Widget reutilizado
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart'; // Widget reutilizado
 import 'package:siven_app/widgets/TextField.dart'; // Asegúrate de usar el nombre correcto
+import 'package:siven_app/core/services/catalogo_service_red_servicio.dart';
+import 'package:siven_app/core/services/selection_storage_service.dart';
+import 'package:siven_app/core/services/http_service.dart';
+import 'package:http/http.dart' as http;
 
 class Captacion extends StatefulWidget {
   const Captacion({Key? key}) : super(key: key);
@@ -12,6 +16,10 @@ class Captacion extends StatefulWidget {
 
 class _CaptacionState extends State<Captacion> {
   int _currentCardIndex = 0; // Índice de la card actual
+
+  // Declaración de servicios
+  late CatalogServiceRedServicio catalogService;
+  late SelectionStorageService selectionStorageService;
 
   // Controladores para la primera card
   final TextEditingController maternidadController = TextEditingController();
@@ -52,6 +60,22 @@ class _CaptacionState extends State<Captacion> {
 
   // Variables para la animación de guardar
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Inicialización de servicios
+    initializeServices();
+  }
+
+  void initializeServices() {
+    final httpClient = http.Client();
+    final httpService = HttpService(httpClient: httpClient);
+
+    catalogService = CatalogServiceRedServicio(httpService: httpService);
+    selectionStorageService = SelectionStorageService();
+  }
 
   @override
   void dispose() {
@@ -1576,7 +1600,7 @@ class _CaptacionState extends State<Captacion> {
     );
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // Fondo blanco
@@ -1589,7 +1613,7 @@ class _CaptacionState extends State<Captacion> {
             icon: const Icon(Icons.arrow_back,
                 color: Color(0xFF1877F2), size: 32),
             onPressed: () {
-              Navigator.pushNamed(context, '/captacion_busqueda_persona');
+              Navigator.pushNamed(context, '/captacion_inf_paciente');
             },
           ),
         ),
@@ -1608,15 +1632,21 @@ class _CaptacionState extends State<Captacion> {
                   // Filas con botones adicionales (BotonCentroSalud y IconoPerfil)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      BotonCentroSalud(),
-                      IconoPerfil(),
+                    children: [
+                      BotonCentroSalud(
+                        catalogService: catalogService,
+                        selectionStorageService: selectionStorageService,
+                      ),
+                      const IconoPerfil(),
                     ],
                   ),
                   const SizedBox(height: 20),
 
                   // Red de servicio (otro widget adicional)
-                  const RedDeServicio(),
+                  RedDeServicio(
+                    catalogService: catalogService,
+                    selectionStorageService: selectionStorageService,
+                  ),
                   const SizedBox(height: 30),
 
                   // Encabezado Azul

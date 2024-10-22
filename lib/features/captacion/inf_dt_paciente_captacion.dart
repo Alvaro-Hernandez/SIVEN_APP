@@ -1,6 +1,12 @@
+// lib/screens/info_dt_paciente_captacion.dart
+
 import 'package:flutter/material.dart';
 import 'package:siven_app/widgets/version.dart'; // Widget reutilizado
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart'; // Widget reutilizado
+import 'package:siven_app/core/services/catalogo_service_red_servicio.dart';
+import 'package:siven_app/core/services/selection_storage_service.dart';
+import 'package:siven_app/core/services/http_service.dart';
+import 'package:http/http.dart' as http;
 
 class InfoDtPacienteCaptacion extends StatefulWidget {
   const InfoDtPacienteCaptacion({Key? key}) : super(key: key);
@@ -55,6 +61,26 @@ class _InfoDtPacienteCaptacionState extends State<InfoDtPacienteCaptacion> {
   // Paginación
   int _currentPage = 0;
   final int _itemsPerPage = 2;
+
+  // Declaración de servicios
+  late CatalogServiceRedServicio catalogService;
+  late SelectionStorageService selectionStorageService;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Inicialización de servicios
+    initializeServices();
+  }
+
+  void initializeServices() {
+    final httpClient = http.Client();
+    final httpService = HttpService(httpClient: httpClient);
+
+    catalogService = CatalogServiceRedServicio(httpService: httpService);
+    selectionStorageService = SelectionStorageService();
+  }
 
   // Función para alternar entre las tarjetas
   void _toggleCard(String card) {
@@ -141,8 +167,6 @@ class _InfoDtPacienteCaptacionState extends State<InfoDtPacienteCaptacion> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white, // Fondo blanco
-                    disabledBackgroundColor:
-                        Color(0xFF00C1D4), // Texto color celeste
                     side: BorderSide(
                         color: Color(0xFF00C1D4), width: 1), // Borde celeste
                     shape: RoundedRectangleBorder(
@@ -155,7 +179,6 @@ class _InfoDtPacienteCaptacionState extends State<InfoDtPacienteCaptacion> {
                   ),
                 ),
                 const SizedBox(width: 16), // Separación entre los botones
-                // Botón "GUARDAR"
                 // Botón "GUARDAR"
                 ElevatedButton(
                   onPressed: () {
@@ -221,15 +244,21 @@ class _InfoDtPacienteCaptacionState extends State<InfoDtPacienteCaptacion> {
                   // Filas con botones adicionales (BotonCentroSalud y IconoPerfil)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      BotonCentroSalud(),
-                      IconoPerfil(),
+                    children: [
+                      BotonCentroSalud(
+                        catalogService: catalogService,
+                        selectionStorageService: selectionStorageService,
+                      ),
+                      const IconoPerfil(),
                     ],
                   ),
                   const SizedBox(height: 20),
 
                   // Red de servicio
-                  const RedDeServicio(),
+                  RedDeServicio(
+                    catalogService: catalogService,
+                    selectionStorageService: selectionStorageService,
+                  ),
                   const SizedBox(height: 20),
 
                   // Nombre del paciente con el color #00C1D4
@@ -266,6 +295,7 @@ class _InfoDtPacienteCaptacionState extends State<InfoDtPacienteCaptacion> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Encabezado de la tarjeta
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -302,8 +332,8 @@ class _InfoDtPacienteCaptacionState extends State<InfoDtPacienteCaptacion> {
                                     Icon(Icons.edit, color: Color(0xFF00C1D4)),
                                     SizedBox(width: 10),
                                     Icon(Icons.copy,
-                                        color: Color(
-                                            0xFF00C1D4)), // Icono de copiar
+                                        color:
+                                            Color(0xFF00C1D4)), // Icono de copiar
                                   ],
                                 ),
                               ],
@@ -400,6 +430,7 @@ class _InfoDtPacienteCaptacionState extends State<InfoDtPacienteCaptacion> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Encabezado de la tarjeta
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -454,8 +485,7 @@ class _InfoDtPacienteCaptacionState extends State<InfoDtPacienteCaptacion> {
 
                               // Control de paginado
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   // Botón de retroceder página
                                   IconButton(
@@ -560,7 +590,7 @@ class _EventCard extends StatelessWidget {
   }
 }
 
-// Helper widget to display patient info rows
+// Helper widget para mostrar la información del paciente
 class _PatientInfoRow extends StatelessWidget {
   final String label;
   final String value;
@@ -586,10 +616,4 @@ class _PatientInfoRow extends StatelessWidget {
       ),
     );
   }
-}
-
-void main() {
-  runApp(const MaterialApp(
-    home: InfoDtPacienteCaptacion(),
-  ));
 }

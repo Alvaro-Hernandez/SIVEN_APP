@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:siven_app/features/home/jornadas_screen.dart';
 import 'features/login/Login.dart';
 import 'features/home/Home.dart';
 import 'features/red_de_servicio_screen.dart';
@@ -12,7 +11,6 @@ import 'features/captacion/buscar_por_nombre.dart';
 import 'features/captacion/captacion_resultado_busqueda.dart';
 import 'features/captacion/inf_dt_paciente_captacion.dart';
 import 'features/captacion/Captacion.dart';
-
 
 void main() {
   runApp(const MyApp());
@@ -39,7 +37,6 @@ class MyApp extends StatelessWidget {
         '/captacion_resultado_busqueda': (context) => CaptacionResultadoBusqueda(),
         '/captacion_inf_paciente': (context) => InfoDtPacienteCaptacion(),
         '/captacion' : (context) => Captacion(),
-        '/jornadas': (context) => JornadasScreen(),
       },
       onUnknownRoute: (settings) => MaterialPageRoute(
         builder: (context) => Scaffold(

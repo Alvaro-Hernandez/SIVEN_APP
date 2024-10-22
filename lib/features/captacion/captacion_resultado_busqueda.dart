@@ -3,9 +3,38 @@ import 'package:siven_app/widgets/version.dart'; // Widget reutilizado
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart'; // Widget reutilizado
 import 'package:siven_app/widgets/card_persona.dart'; // Widget CardPersonaWidget reutilizado
 import 'package:siven_app/widgets/filtro_persona.dart'; // Widget FiltroPersonaWidget reutilizado
+import 'package:siven_app/core/services/catalogo_service_red_servicio.dart';
+import 'package:siven_app/core/services/selection_storage_service.dart';
+import 'package:siven_app/core/services/http_service.dart';
+import 'package:http/http.dart' as http;
 
-class CaptacionResultadoBusqueda extends StatelessWidget {
+class CaptacionResultadoBusqueda extends StatefulWidget {
   const CaptacionResultadoBusqueda({Key? key}) : super(key: key);
+
+  @override
+  _CaptacionResultadoBusquedaState createState() => _CaptacionResultadoBusquedaState();
+}
+
+class _CaptacionResultadoBusquedaState extends State<CaptacionResultadoBusqueda> {
+  // Declaración de servicios
+  late CatalogServiceRedServicio catalogService;
+  late SelectionStorageService selectionStorageService;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Inicialización de servicios
+    initializeServices();
+  }
+
+  void initializeServices() {
+    final httpClient = http.Client();
+    final httpService = HttpService(httpClient: httpClient);
+
+    catalogService = CatalogServiceRedServicio(httpService: httpService);
+    selectionStorageService = SelectionStorageService();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,15 +67,21 @@ class CaptacionResultadoBusqueda extends StatelessWidget {
                   // Filas con botones adicionales (BotonCentroSalud y IconoPerfil)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      BotonCentroSalud(),
-                      IconoPerfil(),
+                    children: [
+                      BotonCentroSalud(
+                        catalogService: catalogService,
+                        selectionStorageService: selectionStorageService,
+                      ),
+                      const IconoPerfil(),
                     ],
                   ),
                   const SizedBox(height: 20),
 
-                  // Red de servicio (otro widget adicional)
-                  const RedDeServicio(),
+                  // Red de servicio
+                  RedDeServicio(
+                    catalogService: catalogService,
+                    selectionStorageService: selectionStorageService,
+                  ),
                   const SizedBox(height: 30),
 
                   // Filtro por datos de la persona

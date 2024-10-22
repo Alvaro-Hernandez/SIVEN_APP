@@ -3,6 +3,10 @@ import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart';
 import 'package:siven_app/widgets/version.dart';
 import 'package:siven_app/widgets/TextField.dart'; // Importamos el widget reutilizable
 import 'package:siven_app/widgets/custom_date_field.dart'; // Importamos el nuevo widget de fecha
+import 'package:siven_app/core/services/catalogo_service_red_servicio.dart';
+import 'package:siven_app/core/services/selection_storage_service.dart';
+import 'package:siven_app/core/services/http_service.dart';
+import 'package:http/http.dart' as http;
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -19,14 +23,37 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _endDateController = TextEditingController();
 
   // Listas de opciones
-  final List<String> silaisOptions = ['SILAIS_MANAGUA', 'SILAIS_CHONTALES'];
-  final List<String> eventoOptions = ['COVID-19', 'Malaria'];
-  final List<String> unidadSaludOptions = ['UNIDAD DE SALUD LOS ROBLES', 'UNIDAD DE SALUD SAN FRANCISCO'];
+  final List<String> silaisOptions = ['SILAIS Managua', 'SILAIS Chontales'];
+  final List<String> eventoOptions = ['COVID-19', 'Dengue'];
+  final List<String> unidadSaludOptions = [
+    'Unidad de Salud 1',
+    'Unidad de Salud 2'
+  ];
 
   // Controladores para Autocomplete
   final TextEditingController _silaisController = TextEditingController();
   final TextEditingController _unidadSaludController = TextEditingController();
   final TextEditingController _eventoController = TextEditingController();
+
+  // Declaración de servicios
+  late CatalogServiceRedServicio catalogService;
+  late SelectionStorageService selectionStorageService;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Inicialización de servicios
+    initializeServices();
+  }
+
+  void initializeServices() {
+    final httpClient = http.Client();
+    final httpService = HttpService(httpClient: httpClient);
+
+    catalogService = CatalogServiceRedServicio(httpService: httpService);
+    selectionStorageService = SelectionStorageService();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +67,8 @@ class _SearchScreenState extends State<SearchScreen> {
         leading: Padding(
           padding: const EdgeInsets.only(top: 13.0),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF1877F2), size: 32),
+            icon:
+                const Icon(Icons.arrow_back, color: Color(0xFF1877F2), size: 32),
             onPressed: () {
               Navigator.pushNamed(context, '/home');
             },
@@ -50,7 +78,8 @@ class _SearchScreenState extends State<SearchScreen> {
         centerTitle: true,
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribuir widgets con espacio entre ellos
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // Distribuir widgets con espacio entre ellos
         children: [
           Expanded(
             child: SingleChildScrollView(
@@ -60,15 +89,22 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // Uso de los widgets pasando los servicios
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        BotonCentroSalud(),
-                        IconoPerfil(),
+                      children: [
+                        BotonCentroSalud(
+                          catalogService: catalogService,
+                          selectionStorageService: selectionStorageService,
+                        ),
+                        const IconoPerfil(),
                       ],
                     ),
                     const SizedBox(height: 20),
-                    const RedDeServicio(),
+                    RedDeServicio(
+                      catalogService: catalogService,
+                      selectionStorageService: selectionStorageService,
+                    ),
                     const SizedBox(height: 20),
 
                     // Texto e ícono de búsqueda

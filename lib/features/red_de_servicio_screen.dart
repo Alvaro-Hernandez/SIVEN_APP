@@ -6,7 +6,7 @@ import 'package:siven_app/widgets/red_de_servicio_widget.dart';
 import 'package:http/http.dart' as http;
 
 class RedDeServicioScreen extends StatefulWidget {
-  const RedDeServicioScreen({super.key});
+  const RedDeServicioScreen({Key? key}) : super(key: key);
 
   @override
   _RedDeServicioScreenState createState() => _RedDeServicioScreenState();
@@ -90,20 +90,20 @@ class _RedDeServicioScreenState extends State<RedDeServicioScreen> {
                                   style: TextStyle(fontSize: 18.0),
                                 ),
                                 const SizedBox(height: 30.0),
-                                
+
                                 // Llamada al widget RedDeServicioWidget con los servicios inyectados
                                 RedDeServicioWidget(
                                   catalogService: catalogService!,
                                   selectionStorageService: selectionStorageService!,
                                 ),
-                                
+
                                 const SizedBox(height: 50.0),
-                                
+
                                 // Botón de continuar
                                 continueButton(screenWidth),
-                                
+
                                 const SizedBox(height: 20.0),
-                                
+
                                 GestureDetector(
                                   onTap: () {
                                     // Navegar a la pantalla de login

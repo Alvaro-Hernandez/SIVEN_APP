@@ -1,24 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart';
-import 'package:siven_app/widgets/Version.dart';
+import 'package:siven_app/widgets/version.dart';
 import 'package:siven_app/widgets/card_persona.dart'; // Importa el widget reutilizable para las cards
-import 'package:flutter/rendering.dart';
-import 'package:siven_app/widgets/filtro_persona.dart'; 
+import 'package:siven_app/widgets/filtro_persona.dart';
+import 'package:siven_app/core/services/catalogo_service_red_servicio.dart';
+import 'package:siven_app/core/services/selection_storage_service.dart';
+import 'package:siven_app/core/services/http_service.dart';
+import 'package:http/http.dart' as http;
 
 class ResultadosBusquedaScreen extends StatefulWidget {
   const ResultadosBusquedaScreen({Key? key}) : super(key: key);
 
   @override
-  _ResultadosBusquedaScreenState createState() => _ResultadosBusquedaScreenState();
+  _ResultadosBusquedaScreenState createState() =>
+      _ResultadosBusquedaScreenState();
 }
 
 class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showHeader = true;
 
+  // Declaración de servicios
+  late CatalogServiceRedServicio catalogService;
+  late SelectionStorageService selectionStorageService;
+
   @override
   void initState() {
     super.initState();
+
+    // Inicialización de servicios
+    initializeServices();
+
     _scrollController.addListener(() {
       if (_scrollController.position.pixels <= 0) {
         if (!_showHeader) {
@@ -34,6 +46,14 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
         }
       }
     });
+  }
+
+  void initializeServices() {
+    final httpClient = http.Client();
+    final httpService = HttpService(httpClient: httpClient);
+
+    catalogService = CatalogServiceRedServicio(httpService: httpService);
+    selectionStorageService = SelectionStorageService();
   }
 
   @override
@@ -61,20 +81,28 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 90), // Espacio para el encabezado fijo
+                      const SizedBox(
+                          height:
+                              90), // Espacio para el encabezado fijo (AppBar)
 
                       // Botón Centro de Salud y Perfil de Usuario
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          BotonCentroSalud(),
-                          IconoPerfil(),
+                        children: [
+                          BotonCentroSalud(
+                            catalogService: catalogService,
+                            selectionStorageService: selectionStorageService,
+                          ),
+                          const IconoPerfil(),
                         ],
                       ),
                       const SizedBox(height: 10),
 
                       // Texto Red de Servicio
-                      const RedDeServicio(),
+                      RedDeServicio(
+                        catalogService: catalogService,
+                        selectionStorageService: selectionStorageService,
+                      ),
                       const SizedBox(height: 30),
 
                       // Texto e Ícono "Resultado de búsqueda"
@@ -174,7 +202,7 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                             identificacion: '00107095700${index}3H',
                             expediente: '408EUBRM0705850${index}',
                             nombre: 'Persona ${index + 1}',
-                            ubicacion: 'Managua, Managua',
+                            ubicacion: 'Juigalpa/Chontales',
                             colorBorde: naranja,
                             colorBoton: naranja,
                             textoBoton: 'Generar Reporte', // Puedes cambiarlo si lo necesitas

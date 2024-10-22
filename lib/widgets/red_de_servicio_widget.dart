@@ -44,7 +44,7 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
     }
   }
 
-// Cargar la lista de establecimientos de base al SILAIS seleccionado
+  // Cargar la lista de establecimientos de base al SILAIS seleccionado
   Future<void> _loadEstablecimientos(int idSilais) async {
     try {
       final establecimientosData =
@@ -59,7 +59,6 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
     }
   }
 
-// Controlar la carga de SILAIS y cache
   // Controlar la carga de SILAIS y cache
   Future<void> _initializeData() async {
     // Cargar las selecciones guardadas
@@ -113,6 +112,7 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
             });
             widget.selectionStorageService.clearSelections();
           },
+          'id_silais',
         ),
         const SizedBox(height: 30.0),
         dropdownSearchField(
@@ -124,7 +124,8 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
             setState(() {
               selectedUnidadSaludId = val;
             });
-            await widget.selectionStorageService.saveSelectedUnidadSalud(val!);
+            await widget.selectionStorageService
+                .saveSelectedUnidadSalud(val!);
           },
           () {
             setState(() {
@@ -132,6 +133,7 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
             });
             widget.selectionStorageService.clearSelections();
           },
+          'id_establecimiento',
         ),
       ],
     );
@@ -144,10 +146,17 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
     TextEditingController controller,
     ValueChanged<String?> onChanged,
     VoidCallback onClearSelection,
+    String idKey, // Clave para el ID ('id_silais' o 'id_establecimiento')
   ) {
-    return DropdownSearch<String>(
+    return DropdownSearch<Map<String, dynamic>>(
+      items: items,
       popupProps: PopupProps.menu(
         showSearchBox: true,
+        itemBuilder: (context, item, isSelected) {
+          return ListTile(
+            title: Text(item['nombre']),
+          );
+        },
         searchFieldProps: TextFieldProps(
           controller: controller,
           decoration: InputDecoration(
@@ -170,10 +179,7 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
         ),
         fit: FlexFit.tight,
       ),
-
-      // Mapeamos la lista de items para mostrar solo los nombres en el dropdown
-      items: items.map((item) => item['nombre'].toString()).toList(),
-
+      itemAsString: (item) => item['nombre'],
       dropdownDecoratorProps: DropDownDecoratorProps(
         dropdownSearchDecoration: InputDecoration(
           labelText: label,
@@ -197,29 +203,18 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
           ),
         ),
       ),
-
-      // Definimos el valor seleccionado basado en currentValue (el ID que tenemos)
       selectedItem: currentValue != null
           ? items.firstWhere(
-              (item) => item['id_silais'].toString() == currentValue,
-              orElse: () => {
-                    'nombre': ''
-                  })['nombre'] // Usar 'orElse' para evitar el error
+              (item) => item[idKey].toString() == currentValue,
+              orElse: () => {},
+            )
           : null,
-
-      onChanged: (value) {
-        // Buscamos el ID basado en el nombre seleccionado y lo pasamos al callback
-        final selectedId = items
-            .firstWhere((item) => item['nombre'] == value,
-                orElse: () => {'id_silais': ''})['id_silais']
-            .toString(); // Manejar orElse
-        onChanged(selectedId.isNotEmpty
-            ? selectedId
-            : null); // Pasar el ID o null si no se encontró
+      onChanged: (Map<String, dynamic>? value) {
+        final selectedId = value != null ? value[idKey].toString() : null;
+        onChanged(selectedId);
       },
-
-      dropdownBuilder: (context, selectedItem) {
-        return Text(selectedItem ?? 'Seleccione $label');
+      dropdownBuilder: (context, Map<String, dynamic>? selectedItem) {
+        return Text(selectedItem != null ? selectedItem['nombre'] : 'Seleccione $label');
       },
     );
   }

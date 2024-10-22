@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:siven_app/widgets/version.dart'; // Widget reutilizado
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart'; // Widget reutilizado
+import 'package:siven_app/core/services/catalogo_service_red_servicio.dart';
+import 'package:siven_app/core/services/selection_storage_service.dart';
+import 'package:siven_app/core/services/http_service.dart';
+import 'package:http/http.dart' as http;
 
 class CaptacionBusquedaPersona extends StatefulWidget {
   const CaptacionBusquedaPersona({Key? key}) : super(key: key);
@@ -12,6 +16,26 @@ class CaptacionBusquedaPersona extends StatefulWidget {
 class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
   bool habilitarBusquedaPorNombre = false;
   String? seleccion; // Para manejar la selección de botones "Recién Nacido" o "Desconocido"
+
+  // Declaración de servicios
+  late CatalogServiceRedServicio catalogService;
+  late SelectionStorageService selectionStorageService;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Inicialización de servicios
+    initializeServices();
+  }
+
+  void initializeServices() {
+    final httpClient = http.Client();
+    final httpService = HttpService(httpClient: httpClient);
+
+    catalogService = CatalogServiceRedServicio(httpService: httpService);
+    selectionStorageService = SelectionStorageService();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,15 +68,21 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
                   // Filas con botones adicionales (BotonCentroSalud y IconoPerfil)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      BotonCentroSalud(),
-                      IconoPerfil(),
+                    children: [
+                      BotonCentroSalud(
+                        catalogService: catalogService,
+                        selectionStorageService: selectionStorageService,
+                      ),
+                      const IconoPerfil(),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  
-                  // Red de servicio (otro widget adicional que ya tenías)
-                  const RedDeServicio(),
+                      
+                  // Red de servicio
+                  RedDeServicio(
+                    catalogService: catalogService,
+                    selectionStorageService: selectionStorageService,
+                  ),
                   const SizedBox(height: 20),
 
                   // Título de búsqueda con el ícono de lupa, ajustado hacia la izquierda

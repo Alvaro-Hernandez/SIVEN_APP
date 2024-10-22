@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:siven_app/widgets/version.dart'; // Widget reutilizado
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart'; // Widget reutilizado
+import 'package:siven_app/core/services/catalogo_service_red_servicio.dart';
+import 'package:siven_app/core/services/selection_storage_service.dart';
+import 'package:siven_app/core/services/http_service.dart';
+import 'package:http/http.dart' as http;
 
 class AlertaTemprana extends StatefulWidget {
   const AlertaTemprana({Key? key}) : super(key: key);
@@ -11,7 +15,7 @@ class AlertaTemprana extends StatefulWidget {
 }
 
 class _AlertaTempranaState extends State<AlertaTemprana> {
-  // Controladores para los Dropdowns
+  // Controladores para los Dropdowns - Definidos a nivel de clase para que sean persistentes
   String selectedRegion = "Managua";
   String selectedPeriodo = "Enero";
   String selectedEpidemia = "Dengue";
@@ -56,15 +60,15 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
     "Ébola"
   ];
 
-  // Función para actualizar los datos de los gráficos
+  // Función para actualizar los datos de los gráficos según las selecciones
   List<ChartData> _getChartData() {
     if (selectedRegion == "Managua" && selectedPeriodo == "Enero") {
       return [
-        ChartData(4, 20),
         ChartData(1, 30),
-        ChartData(5, 20),
-        ChartData(3, 30),
-        ChartData(1, 45),
+        ChartData(2, 40),
+        ChartData(3, 35),
+        ChartData(4, 50),
+        ChartData(5, 45),
       ];
     } else if (selectedRegion == "RAAN" && selectedPeriodo == "Febrero") {
       return [
@@ -87,6 +91,12 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
 
   @override
   Widget build(BuildContext context) {
+    // Inicializar servicios
+    final httpClient = http.Client();
+    final httpService = HttpService(httpClient: httpClient);
+    final catalogService = CatalogServiceRedServicio(httpService: httpService);
+    final selectionStorageService = SelectionStorageService();
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -114,72 +124,22 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Uso de los widgets pasando los servicios
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      BotonCentroSalud(),
-                      IconoPerfil(),
+                    children: [
+                      BotonCentroSalud(
+                        catalogService: catalogService,
+                        selectionStorageService: selectionStorageService,
+                      ),
+                      const IconoPerfil(),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const RedDeServicio(),
-                  const SizedBox(height: 20),
-
-                  // Contenedor de "Alertas tempranas"
-                  Container(
-                    padding: const EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Color(0xFFD9006C),
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Alertas tempranas",
-                              style: TextStyle(
-                                color: Color(0xFFD9006C),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Roboto',
-                              ),
-                            ),
-                            Icon(
-                              Icons.warning,
-                              color: Color(0xFFD9006C),
-                              size: 24,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          "5 alertas nuevas en Chinandega   Alta prioridad",
-                          style: TextStyle(
-                            color: Color(0xFFD9006C),
-                            fontSize: 14,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          "3 alertas nuevas en Boaco   Mediana prioridad",
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
-                      ],
-                    ),
+                  RedDeServicio(
+                    catalogService: catalogService,
+                    selectionStorageService: selectionStorageService,
                   ),
-
                   const SizedBox(height: 20),
 
                   // Filtros: Región, Período, Epidemia
@@ -269,22 +229,8 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
                           ),
                           series: <ChartSeries>[
                             LineSeries<ChartData, int>(
-                              name: 'Dengue',
+                              name: selectedEpidemia,
                               color: Color(0xFFC2185B),
-                              dataSource: _getChartData(),
-                              xValueMapper: (ChartData data, _) => data.x,
-                              yValueMapper: (ChartData data, _) => data.y,
-                            ),
-                            LineSeries<ChartData, int>(
-                              name: 'Influenza',
-                              color: Color(0xFFF48FB1),
-                              dataSource: _getChartData(),
-                              xValueMapper: (ChartData data, _) => data.x,
-                              yValueMapper: (ChartData data, _) => data.y,
-                            ),
-                            LineSeries<ChartData, int>(
-                              name: 'Malaria',
-                              color: Color(0xFFD9006C),
                               dataSource: _getChartData(),
                               xValueMapper: (ChartData data, _) => data.x,
                               yValueMapper: (ChartData data, _) => data.y,
@@ -343,7 +289,7 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          "90% de Afectación",
+                          "203.482% de Afectación",
                           style: TextStyle(
                             color: Color(0xFFD9006C),
                             fontSize: 20, // Reducimos el tamaño de la tipografía
@@ -439,10 +385,10 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
   // Datos del gráfico de barras
   List<BarChartData> _getBarChartData() {
     return [
-      BarChartData('Influenza', 10),
-      BarChartData('Malaria', 30),
-      BarChartData('Dengue', 20),
-      BarChartData('Rabia', 50),
+      BarChartData('Cat1', 10),
+      BarChartData('Cat2', 30),
+      BarChartData('Cat3', 20),
+      BarChartData('Cat4', 50),
     ];
   }
 }
