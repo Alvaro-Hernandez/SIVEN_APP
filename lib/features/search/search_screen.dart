@@ -6,6 +6,7 @@ import 'package:siven_app/widgets/custom_date_field.dart'; // Importamos el nuev
 import 'package:siven_app/core/services/catalogo_service_red_servicio.dart';
 import 'package:siven_app/core/services/selection_storage_service.dart';
 import 'package:siven_app/core/services/http_service.dart';
+import 'package:siven_app/core/services/EventoSaludService.dart';
 import 'package:http/http.dart' as http;
 
 class SearchScreen extends StatefulWidget {
@@ -22,22 +23,25 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
 
-  // Listas de opciones
-  final List<String> silaisOptions = ['SILAIS Managua', 'SILAIS Chontales'];
-  final List<String> eventoOptions = ['COVID-19', 'Dengue'];
-  final List<String> unidadSaludOptions = [
-    'Unidad de Salud 1',
-    'Unidad de Salud 2'
-  ];
-
   // Controladores para Autocomplete
   final TextEditingController _silaisController = TextEditingController();
   final TextEditingController _unidadSaludController = TextEditingController();
   final TextEditingController _eventoController = TextEditingController();
 
+  // Listas dinámicas para las opciones de los campos de búsqueda (con IDs y nombres)
+  List<Map<String, dynamic>> silaisOptions = [];
+  List<Map<String, dynamic>> unidadSaludOptions = [];
+  List<Map<String, dynamic>> eventoOptions = []; // Opciones dinámicas para eventos de salud
+
+  // IDs seleccionados
+  int? idSilaisSeleccionado;
+  int? idUnidadSaludSeleccionado;
+  int? idEventoSeleccionado; // Nueva variable para el ID del evento seleccionado
+
   // Declaración de servicios
   late CatalogServiceRedServicio catalogService;
   late SelectionStorageService selectionStorageService;
+  late EventoSaludService eventoSaludService;
 
   @override
   void initState() {
@@ -45,14 +49,60 @@ class _SearchScreenState extends State<SearchScreen> {
 
     // Inicialización de servicios
     initializeServices();
+
+    // Carga inicial de los datos
+    loadCatalogData();
+    loadEventosSalud(); // Cargar eventos de salud
   }
 
+  // Inicialización de los servicios
   void initializeServices() {
     final httpClient = http.Client();
     final httpService = HttpService(httpClient: httpClient);
 
     catalogService = CatalogServiceRedServicio(httpService: httpService);
     selectionStorageService = SelectionStorageService();
+    eventoSaludService = EventoSaludService(httpService: httpService); // Instancia de EventoSaludService
+  }
+
+  // Método para cargar los datos de los catálogos
+  Future<void> loadCatalogData() async {
+    try {
+      // Cargar los SILAIS desde el servicio
+      silaisOptions = await catalogService.getAllSilais();
+
+      // Inicialmente los establecimientos de salud estarán vacíos
+      unidadSaludOptions = [];
+
+      // Actualizamos el estado de la pantalla para reflejar los nuevos datos
+      setState(() {});
+    } catch (error) {
+      print('Error al cargar los datos del catálogo: $error');
+    }
+  }
+
+  // Método para cargar los establecimientos con base en el SILAIS seleccionado
+  Future<void> loadEstablecimientosBySilais(int idSilais) async {
+    try {
+      unidadSaludOptions = await catalogService.getEstablecimientosBySilais(idSilais);
+
+      // Actualizamos el estado de la pantalla para reflejar los nuevos datos
+      setState(() {});
+    } catch (error) {
+      print('Error al cargar establecimientos: $error');
+    }
+  }
+
+  // Método para cargar eventos de salud
+  Future<void> loadEventosSalud() async {
+    try {
+      eventoOptions = await eventoSaludService.listarEventosSalud();
+
+      // Actualizar el estado para reflejar los eventos de salud
+      setState(() {});
+    } catch (error) {
+      print('Error al cargar eventos de salud: $error');
+    }
   }
 
   @override
@@ -67,8 +117,7 @@ class _SearchScreenState extends State<SearchScreen> {
         leading: Padding(
           padding: const EdgeInsets.only(top: 13.0),
           child: IconButton(
-            icon:
-                const Icon(Icons.arrow_back, color: Color(0xFF1877F2), size: 32),
+            icon: const Icon(Icons.arrow_back, color: Color(0xFF1877F2), size: 32),
             onPressed: () {
               Navigator.pushNamed(context, '/home');
             },
@@ -79,7 +128,6 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        // Distribuir widgets con espacio entre ellos
         children: [
           Expanded(
             child: SingleChildScrollView(
@@ -148,36 +196,55 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Autocomplete SILAIS reutilizando el widget CustomTextFieldDropdown
+                    // Autocomplete SILAIS reutilizando el widget CustomTextFieldDropdown con datos dinámicos
                     CustomTextFieldDropdown(
                       hintText: 'SILAIS de la captación',
                       controller: _silaisController,
-                      options: silaisOptions,
+                      options: silaisOptions.map((silais) => silais['nombre'].toString()).toList(),
                       borderColor: salmonColor,
                       borderWidth: 2.0,
                       borderRadius: 5.0,
+                      onChanged: (String? selectedValue) {
+                        final selectedSilais = silaisOptions.firstWhere(
+                          (silais) => silais['nombre'] == selectedValue,
+                        );
+                        idSilaisSeleccionado = selectedSilais['id_silais'];
+                        loadEstablecimientosBySilais(idSilaisSeleccionado!);
+                      },
                     ),
                     const SizedBox(height: 20),
 
-                    // Autocomplete Unidad de Salud reutilizando el widget CustomTextFieldDropdown
+                    // Autocomplete Unidad de Salud reutilizando el widget CustomTextFieldDropdown con datos dinámicos
                     CustomTextFieldDropdown(
                       hintText: 'Unidad de Salud',
                       controller: _unidadSaludController,
-                      options: unidadSaludOptions,
+                      options: unidadSaludOptions.map((unidad) => unidad['nombre'].toString()).toList(),
                       borderColor: salmonColor,
                       borderWidth: 2.0,
                       borderRadius: 5.0,
+                      onChanged: (String? selectedValue) {
+                        final selectedUnidad = unidadSaludOptions.firstWhere(
+                          (unidad) => unidad['nombre'] == selectedValue,
+                        );
+                        idUnidadSaludSeleccionado = selectedUnidad['id_establecimiento'];
+                      },
                     ),
                     const SizedBox(height: 20),
 
-                    // Autocomplete Evento de Salud reutilizando el widget CustomTextFieldDropdown
+                    // Autocomplete Evento de Salud con captura del ID
                     CustomTextFieldDropdown(
                       hintText: 'Evento de salud',
                       controller: _eventoController,
-                      options: eventoOptions,
+                      options: eventoOptions.map((evento) => evento['nombre'].toString()).toList(),
                       borderColor: salmonColor,
                       borderWidth: 2.0,
                       borderRadius: 5.0,
+                      onChanged: (String? selectedValue) {
+                        final selectedEvento = eventoOptions.firstWhere(
+                          (evento) => evento['nombre'] == selectedValue,
+                        );
+                        idEventoSeleccionado = selectedEvento['id_evento_salud'];
+                      },
                     ),
                     const SizedBox(height: 30),
 
@@ -185,7 +252,17 @@ class _SearchScreenState extends State<SearchScreen> {
                     ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          Navigator.pushNamed(context, '/resultados_busqueda');
+                          Navigator.pushNamed(
+                            context,
+                            '/resultados_busqueda',
+                            arguments: {
+                              'silais': idSilaisSeleccionado.toString(),
+                              'unidadSalud': idUnidadSaludSeleccionado.toString(),
+                              'evento': idEventoSeleccionado.toString(), // Enviar el ID del evento
+                              'fechaInicio': _startDateController.text,
+                              'fechaFin': _endDateController.text,
+                            },
+                          );
                         }
                       },
                       style: ElevatedButton.styleFrom(

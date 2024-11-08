@@ -29,14 +29,30 @@ class MyApp extends StatelessWidget {
         '/home': (context) => Home(),
         '/FiltrarReporte': (context) => SearchScreen(), 
         '/red_servicio': (context) => RedDeServicioScreen(), 
-        '/resultados_busqueda': (context) => ResultadosBusquedaScreen(), 
-        '/analisis': (context) => AnalisisApp(),
+         '/analisis': (context) => AnalisisScreen(datosFiltrados: []),
         '/alerta_temprana': (context) => AlertaTemprana(),
         '/captacion_busqeda_persona': (context) => CaptacionBusquedaPersona(),
         '/captacion_busqueda_por_nombre': (context) => BusquedaPorNombreScreen(),
         '/captacion_resultado_busqueda': (context) => CaptacionResultadoBusqueda(),
         '/captacion_inf_paciente': (context) => InfoDtPacienteCaptacion(),
         '/captacion' : (context) => Captacion(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/resultados_busqueda') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) {
+              return ResultadosBusquedaScreen(
+                silais: args['silais'],
+                unidadSalud: args['unidadSalud'],
+                evento: args['evento'],
+                fechaInicio: args['fechaInicio'],
+                fechaFin: args['fechaFin'],
+              );
+            },
+          );
+        }
+        return null;
       },
       onUnknownRoute: (settings) => MaterialPageRoute(
         builder: (context) => Scaffold(

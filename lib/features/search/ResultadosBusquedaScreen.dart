@@ -1,65 +1,245 @@
+// ResultadosBusquedaScreen.dart
+
 import 'package:flutter/material.dart';
 import 'package:siven_app/widgets/Encabezado_reporte_analisis.dart';
 import 'package:siven_app/widgets/version.dart';
-import 'package:siven_app/widgets/card_persona.dart'; // Importa el widget reutilizable para las cards
+import 'package:siven_app/widgets/card_persona.dart';
 import 'package:siven_app/widgets/filtro_persona.dart';
-import 'package:siven_app/core/services/catalogo_service_red_servicio.dart';
-import 'package:siven_app/core/services/selection_storage_service.dart';
+import 'package:siven_app/core/services/captacion_service.dart';
 import 'package:siven_app/core/services/http_service.dart';
+import 'package:siven_app/core/services/catalogo_service_red_servicio.dart';
 import 'package:http/http.dart' as http;
+import 'package:siven_app/core/services/selection_storage_service.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:io';
+import 'package:open_filex/open_filex.dart';
+import 'Analisis.dart';
 
 class ResultadosBusquedaScreen extends StatefulWidget {
-  const ResultadosBusquedaScreen({Key? key}) : super(key: key);
+  final String silais;
+  final String unidadSalud;
+  final String evento;
+  final String fechaInicio;
+  final String fechaFin;
+
+  const ResultadosBusquedaScreen({
+    required this.silais,
+    required this.unidadSalud,
+    required this.evento,
+    required this.fechaInicio,
+    required this.fechaFin,
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _ResultadosBusquedaScreenState createState() =>
-      _ResultadosBusquedaScreenState();
+  _ResultadosBusquedaScreenState createState() => _ResultadosBusquedaScreenState();
 }
 
 class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showHeader = true;
 
-  // Declaración de servicios
+  late CaptacionService captacionService;
   late CatalogServiceRedServicio catalogService;
   late SelectionStorageService selectionStorageService;
+  bool _servicesInitialized = false;
+  List<Map<String, dynamic>> personasFiltradas = [];
 
   @override
   void initState() {
     super.initState();
-
-    // Inicialización de servicios
-    initializeServices();
+    initializeServices().then((_) {
+      _fetchResultadosFiltrados();
+    });
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels <= 0) {
         if (!_showHeader) {
           setState(() {
-            _showHeader = true; // Mostrar encabezado
+            _showHeader = true;
           });
         }
       } else if (_scrollController.position.pixels > 100) {
         if (_showHeader) {
           setState(() {
-            _showHeader = false; // Ocultar encabezado
+            _showHeader = false;
           });
         }
       }
     });
   }
 
-  void initializeServices() {
+  Future<void> initializeServices() async {
     final httpClient = http.Client();
     final httpService = HttpService(httpClient: httpClient);
 
+    captacionService = CaptacionService(httpService: httpService);
     catalogService = CatalogServiceRedServicio(httpService: httpService);
     selectionStorageService = SelectionStorageService();
+
+    setState(() {
+      _servicesInitialized = true;
+    });
+  }
+
+  Future<void> _fetchResultadosFiltrados() async {
+    if (!_servicesInitialized) {
+      return;
+    }
+
+    try {
+      final resultados = await captacionService.buscarCaptaciones(
+        fechaInicio: widget.fechaInicio.isNotEmpty ? DateTime.parse(widget.fechaInicio) : null,
+        fechaFin: widget.fechaFin.isNotEmpty ? DateTime.parse(widget.fechaFin) : null,
+        idSilais: int.tryParse(widget.silais),
+        idEventoSalud: int.tryParse(widget.evento),
+        idEstablecimiento: int.tryParse(widget.unidadSalud),
+      );
+
+      setState(() {
+        personasFiltradas = resultados;
+      });
+    } catch (error) {
+      print('Error al buscar captaciones: $error');
+    }
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> generarReportePDF() async {
+    final pdf = pw.Document();
+
+    final fontData = await rootBundle.load('lib/assets/Roboto-Regular.ttf');
+    final ttf = pw.Font.ttf(fontData);
+
+    final logoImage = pw.MemoryImage(
+      (await rootBundle.load('lib/assets/Isotipo-.webp')).buffer.asUint8List(),
+    );
+
+    final tituloEstilo = pw.TextStyle(
+      fontSize: 24,
+      fontWeight: pw.FontWeight.bold,
+      font: ttf,
+      color: PdfColors.lightBlue,
+    );
+
+    final subtituloEstilo = pw.TextStyle(
+      fontSize: 18,
+      fontWeight: pw.FontWeight.bold,
+      font: ttf,
+      color: PdfColors.blueGrey700,
+    );
+
+    final textoEstilo = pw.TextStyle(
+      fontSize: 12,
+      font: ttf,
+      color: PdfColors.blueGrey700,
+    );
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Center(
+            child: pw.Column(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [
+                pw.Image(logoImage, width: 100, height: 100),
+                pw.SizedBox(height: 20),
+                pw.Text('SIVEN', style: tituloEstilo),
+                pw.SizedBox(height: 10),
+                pw.Text('Reporte de Resultados de Búsqueda', style: subtituloEstilo),
+                pw.SizedBox(height: 10),
+                pw.Text('Fecha: ${DateTime.now().toLocal().toString().split(' ')[0]}', style: textoEstilo),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.all(32),
+        footer: (pw.Context context) {
+          return pw.Container(
+            alignment: pw.Alignment.centerRight,
+            margin: pw.EdgeInsets.only(top: 1.0 * PdfPageFormat.cm),
+            child: pw.Text(
+              'Página ${context.pageNumber} de ${context.pagesCount}',
+              style: pw.TextStyle(color: PdfColors.grey),
+            ),
+          );
+        },
+        build: (pw.Context context) {
+          return [
+            pw.Header(
+              level: 1,
+              child: pw.Text('Detalles de Resultados', style: tituloEstilo),
+            ),
+            pw.SizedBox(height: 10),
+            pw.Table.fromTextArray(
+              headers: [
+                'Identificación',
+                'Expediente',
+                'Nombre',
+                'Ubicación',
+              ],
+              data: personasFiltradas.map((persona) {
+                return [
+                  persona['cedula'] ?? 'Sin cédula',
+                  persona['codigoExpediente'] ?? 'Sin expediente',
+                  persona['nombreCompleto'] ?? 'Sin nombre',
+                  '${persona['municipio'] ?? 'Sin municipio'}/${persona['departamento'] ?? 'Sin departamento'}',
+                ];
+              }).toList(),
+              headerStyle: pw.TextStyle(
+                fontSize: 12,
+                fontWeight: pw.FontWeight.bold,
+                font: ttf,
+                color: PdfColors.white,
+              ),
+              cellStyle: pw.TextStyle(fontSize: 10, font: ttf),
+              headerDecoration: pw.BoxDecoration(
+                color: PdfColors.lightBlue,
+              ),
+              cellHeight: 25,
+              cellAlignment: pw.Alignment.centerLeft,
+              cellAlignments: {
+                0: pw.Alignment.centerLeft,
+                1: pw.Alignment.centerLeft,
+                2: pw.Alignment.centerLeft,
+                3: pw.Alignment.centerLeft,
+              },
+              columnWidths: {
+                0: pw.FlexColumnWidth(1),
+                1: pw.FlexColumnWidth(1),
+                2: pw.FlexColumnWidth(2),
+                3: pw.FlexColumnWidth(2),
+              },
+              border: pw.TableBorder.all(color: PdfColors.blueGrey700),
+            ),
+          ];
+        },
+      ),
+    );
+
+    final output = await getTemporaryDirectory();
+    final file = File("${output.path}/Reporte Generado.pdf");
+    await file.writeAsBytes(await pdf.save());
+    await OpenFilex.open(file.path);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Reporte generado en: ${file.path}')),
+    );
   }
 
   @override
@@ -81,11 +261,7 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(
-                          height:
-                              90), // Espacio para el encabezado fijo (AppBar)
-
-                      // Botón Centro de Salud y Perfil de Usuario
+                      const SizedBox(height: 90),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -97,15 +273,11 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                         ],
                       ),
                       const SizedBox(height: 10),
-
-                      // Texto Red de Servicio
                       RedDeServicio(
                         catalogService: catalogService,
                         selectionStorageService: selectionStorageService,
                       ),
                       const SizedBox(height: 30),
-
-                      // Texto e Ícono "Resultado de búsqueda"
                       Row(
                         children: const [
                           Icon(Icons.search, color: naranja, size: 26),
@@ -121,8 +293,6 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                         ],
                       ),
                       const SizedBox(height: 10),
-
-                      // Llamada al Widget Reutilizable FiltroPersonaWidget
                       Row(
                         children: [
                           Expanded(
@@ -132,22 +302,20 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                               colorIcono: grisOscuro,
                               colorTexto: grisOscuro,
                               onChanged: (valor) {
-                                print('Texto ingresado: $valor');
+                                _filtrarPorDatosPersona(valor);
                               },
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 20),
-
-                      // Botones "Generar Reporte de Esta Lista" y "Generar Análisis de Esta Lista"
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () {
-                                // Acción para generar reporte
+                                generarReportePDF();
                               },
                               icon: const Icon(Icons.article, color: naranja, size: 40),
                               label: const Text(
@@ -169,8 +337,14 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () {
-                                // Navegación a la pantalla de análisis
-                                Navigator.pushNamed(context, '/analisis');
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AnalisisScreen(
+                                      datosFiltrados: personasFiltradas,
+                                    ),
+                                  ),
+                                );
                               },
                               icon: const Icon(Icons.analytics, color: naranja, size: 40),
                               label: const Text(
@@ -190,25 +364,24 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 0),
-
-                      // Listado de resultados (cards reutilizables)
+                      const SizedBox(height: 20),
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: 10, // Simulando 10 resultados
+                        itemCount: personasFiltradas.length,
                         itemBuilder: (context, index) {
+                          final persona = personasFiltradas[index];
                           return CardPersonaWidget(
-                            identificacion: '00107095700${index}3H',
-                            expediente: '408EUBRM0705850${index}',
-                            nombre: 'Persona ${index + 1}',
-                            ubicacion: 'Juigalpa/Chontales',
+                            identificacion: persona['cedula'] ?? 'Sin cédula',
+                            expediente: persona['codigoExpediente'] ?? 'Sin expediente',
+                            nombre: persona['nombreCompleto'] ?? 'Sin nombre',
+                            ubicacion:
+                                '${persona['municipio'] ?? 'Sin municipio'}/${persona['departamento'] ?? 'Sin departamento'}',
                             colorBorde: naranja,
                             colorBoton: naranja,
-                            textoBoton: 'Generar Reporte', // Puedes cambiarlo si lo necesitas
+                            textoBoton: 'Generar Reporte',
                             onBotonPressed: () {
-                              // Acción al presionar el botón
-                              print('Generando reporte para Persona ${index + 1}');
+                              print('Generando reporte para ${persona['nombreCompleto']}');
                             },
                           );
                         },
@@ -235,9 +408,10 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                       leading: Padding(
                         padding: const EdgeInsets.only(top: 13.0),
                         child: IconButton(
-                          icon: const Icon(Icons.arrow_back, color: azulBrillante, size: 32),
+                          icon: const Icon(Icons.arrow_back,
+                              color: azulBrillante, size: 32),
                           onPressed: () {
-                            Navigator.pushNamed(context, '/FiltrarReporte');
+                            Navigator.pop(context);
                           },
                         ),
                       ),
@@ -251,5 +425,17 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _filtrarPorDatosPersona(String filtro) async {
+    try {
+      final resultados = await captacionService.filtrarPorDatosPersona(filtro);
+
+      setState(() {
+        personasFiltradas = resultados;
+      });
+    } catch (error) {
+      print('Error al filtrar por persona: $error');
+    }
   }
 }

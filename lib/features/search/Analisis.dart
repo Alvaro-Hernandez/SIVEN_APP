@@ -7,52 +7,133 @@ import 'package:siven_app/core/services/selection_storage_service.dart';
 import 'package:siven_app/core/services/http_service.dart';
 import 'package:http/http.dart' as http;
 
-void main() {
-  runApp(AnalisisApp());
+class AnalisisScreen extends StatefulWidget {
+  final List<Map<String, dynamic>> datosFiltrados;
+
+  AnalisisScreen({required this.datosFiltrados});
+
+  @override
+  _AnalisisScreenState createState() => _AnalisisScreenState();
 }
 
-class AnalisisApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: Color(0xFFFBFBFB),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: Padding(
-            padding: const EdgeInsets.only(top: 13.0),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back,
-                  color: Color(0xFF1877F2), size: 32),
-              onPressed: () {
-                // Navegar a resultados_busqueda
-                Navigator.pushNamed(context, '/resultados_busqueda');
-              },
-            ),
-          ),
-          title: const EncabezadoBienvenida(), // Encabezado reutilizable
-          centerTitle: true,
-        ),
-        body: AnalisisScreen(),
-      ),
-    );
-  }
-}
+class _AnalisisScreenState extends State<AnalisisScreen> {
+  // Variables para almacenar los resultados del análisis
+  int totalCasosRegistrados = 0;
+  int totalCasosActivos = 0;
+  int totalCasosFinalizados = 0;
 
-class AnalisisScreen extends StatelessWidget {
+  // Datos para los gráficos
+  List<ChartData> distribucionLocalidad = [];
+  List<IncidenceData> maximosIncidencia = [];
+  List<ChartData> distribucionGenero = [];
+
+  // Declaración de servicios
+  late CatalogServiceRedServicio catalogService;
+  late SelectionStorageService selectionStorageService;
+
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
+
     // Inicializar servicios
     final httpClient = http.Client();
     final httpService = HttpService(httpClient: httpClient);
-    final catalogService = CatalogServiceRedServicio(httpService: httpService);
-    final selectionStorageService = SelectionStorageService();
+    catalogService = CatalogServiceRedServicio(httpService: httpService);
+    selectionStorageService = SelectionStorageService();
+
+    analizarCaptaciones(widget.datosFiltrados);
+  }
+
+  void analizarCaptaciones(List<Map<String, dynamic>> captaciones) {
+    // Total de casos registrados
+    totalCasosRegistrados = captaciones.length;
+
+    // Total de casos activos y finalizados
+    totalCasosActivos = captaciones.where((c) => c['activo'] == 1).length;
+    totalCasosFinalizados = totalCasosRegistrados - totalCasosActivos;
+
+    // Análisis para distribución por localidad
+    Map<String, int> localidadConteo = {};
+    for (var captacion in captaciones) {
+      String localidad = captacion['municipio'] ?? 'Desconocido';
+      if (localidadConteo.containsKey(localidad)) {
+        localidadConteo[localidad] = localidadConteo[localidad]! + 1;
+      } else {
+        localidadConteo[localidad] = 1;
+      }
+    }
+
+    // Convertir a porcentaje
+    localidadConteo.forEach((localidad, conteo) {
+      double porcentaje = (conteo / totalCasosRegistrados) * 100;
+      distribucionLocalidad.add(ChartData(localidad, porcentaje, Colors.orange));
+    });
+
+    // Análisis para máximos de incidencia (por ejemplo, por día)
+    Map<DateTime, int> incidenciaPorDia = {};
+    for (var captacion in captaciones) {
+      String? fechaStr = captacion['fechaCaptacion'];
+      if (fechaStr != null && fechaStr.isNotEmpty) {
+        try {
+          // Parsear la fecha
+          DateTime fecha = DateTime.parse(fechaStr);
+          if (incidenciaPorDia.containsKey(fecha)) {
+            incidenciaPorDia[fecha] = incidenciaPorDia[fecha]! + 1;
+          } else {
+            incidenciaPorDia[fecha] = 1;
+          }
+        } catch (e) {
+          // Manejar errores de parseo
+          print('Error al parsear la fecha: $fechaStr');
+        }
+      }
+    }
+
+    incidenciaPorDia.forEach((fecha, conteo) {
+      maximosIncidencia.add(IncidenceData(fecha, conteo));
+    });
+
+    // Ordenar por fecha
+    maximosIncidencia.sort((a, b) => a.date.compareTo(b.date));
+
+    // Análisis para distribución por género
+    int hombres = captaciones.where((c) => c['genero'] == 'M').length;
+    int mujeres = captaciones.where((c) => c['genero'] == 'F').length;
+
+    distribucionGenero = [
+      ChartData('Hombres', hombres.toDouble(), Colors.blue),
+      ChartData('Mujeres', mujeres.toDouble(), Colors.pink),
+    ];
+
+    setState(() {
+      // Actualiza el estado para reflejar los resultados
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Colores utilizados
+    const Color fondoColor = Color(0xFFFBFBFB);
+    const Color naranja = Color(0xFFF7941D);
+    const Color azulBrillante = Color(0xFF1877F2);
 
     return Scaffold(
-      backgroundColor: Color(0xFFFBFBFB),
-      // Se elimina el AppBar duplicado aquí
+      backgroundColor: fondoColor,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(top: 13.0),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: azulBrillante, size: 32),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        title: const EncabezadoBienvenida(),
+        centerTitle: true,
+      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -87,37 +168,37 @@ class AnalisisScreen extends StatelessWidget {
                   // Encabezado con el icono naranja de estadísticas
                   Row(
                     children: [
-                      Icon(Icons.bar_chart, color: Color(0xFFF7941D)),
+                      Icon(Icons.bar_chart, color: naranja),
                       SizedBox(width: 10),
                       Text(
                         'Análisis de captación',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFF7941D),
+                          color: naranja,
                         ),
                       ),
                     ],
                   ),
                   SizedBox(height: 20),
 
-                  // Fila con 3 Card para Casos registrados, activos y finalizados
+                  // Fila con 3 Cards para Casos registrados, activos y finalizados
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: ResumenCard(
-                          bordeColor: Color(0xFFF7941D),
-                          numero: '150',
+                          bordeColor: naranja,
+                          numero: '$totalCasosRegistrados',
                           titulo: 'Casos registrados',
-                          numeroColor: Color(0xFFF7941D),
+                          numeroColor: naranja,
                         ),
                       ),
-                      SizedBox(width: 10), // Separación entre cards
+                      SizedBox(width: 10),
                       Expanded(
                         child: ResumenCard(
                           bordeColor: Color(0xFFD9006C),
-                          numero: '80',
+                          numero: '$totalCasosActivos',
                           titulo: 'Casos activos',
                           numeroColor: Color(0xFFD9006C),
                         ),
@@ -126,7 +207,7 @@ class AnalisisScreen extends StatelessWidget {
                       Expanded(
                         child: ResumenCard(
                           bordeColor: Color(0xFF39B54A),
-                          numero: '70',
+                          numero: '$totalCasosFinalizados',
                           titulo: 'Casos finalizados',
                           numeroColor: Color(0xFF39B54A),
                         ),
@@ -135,12 +216,12 @@ class AnalisisScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 20),
 
-                  // Card para los gráficos de torta
+                  // Card para los gráficos de torta con scroll horizontal
                   Card(
                     elevation: 5,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
-                      side: BorderSide(color: Color(0xFFF7941D)), // Borde naranja
+                      side: BorderSide(color: naranja), // Borde naranja
                     ),
                     color: Colors.white, // Fondo blanco
                     child: Padding(
@@ -153,35 +234,24 @@ class AnalisisScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFF7941D), // Título color naranja
+                              color: naranja, // Título color naranja
                             ),
                           ),
                           SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: PieChartCard(
-                                  localidad: 'Juigalpa',
-                                  porcentaje: 40,
-                                  color: Color(0xFFF7941D),
-                                ),
-                              ),
-                              Expanded(
-                                child: PieChartCard(
-                                  localidad: 'Acoyapa',
-                                  porcentaje: 35,
-                                  color: Color(0xFFFFA500),
-                                ),
-                              ),
-                              Expanded(
-                                child: PieChartCard(
-                                  localidad: 'La Libertad',
-                                  porcentaje: 25,
-                                  color: Color(0xFF4A4A4A),
-                                ),
-                              ),
-                            ],
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: distribucionLocalidad.map((data) {
+                                return Container(
+                                  width: 200, // Ancho fijo para cada gráfico
+                                  child: PieChartCard(
+                                    localidad: data.label,
+                                    porcentaje: data.value,
+                                    color: data.color,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           ),
                         ],
                       ),
@@ -189,115 +259,95 @@ class AnalisisScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 20),
 
-                  // Fila con los gráficos de líneas y columnas apiladas con scroll
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Card(
-                          elevation: 5,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                                color: Color(0xFFF7941D)), // Borde naranja
+                  // Gráfico de Máximos de incidencia con scroll horizontal
+                  Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: naranja), // Borde naranja
+                    ),
+                    color: Colors.white, // Fondo blanco
+                    child: Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Máximos de incidencia',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: naranja, // Título color naranja
+                            ),
                           ),
-                          color: Colors.white, // Fondo blanco
-                          child: Padding(
-                            padding: const EdgeInsets.all(15.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Máximos de incidencia',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFF7941D), // Título color naranja
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                Container(
-                                  height: 300, // Gráfico más alto
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.vertical,
-                                    child: Container(
-                                      height: 300, // Limitar el alto máximo del gráfico
-                                      child: SfCartesianChart(
-                                        primaryXAxis: CategoryAxis(),
-                                        series: <LineSeries>[
-                                          LineSeries<ChartData, String>(
-                                            dataSource: [
-                                              ChartData('8 AM', 30, Color(0xFFF7941D)),
-                                              ChartData('10 AM', 40, Color(0xFFF7941D)),
-                                              ChartData('12 PM', 35, Color(0xFFF7941D)),
-                                              ChartData('2 PM', 50, Color(0xFFF7941D)),
-                                            ],
-                                            xValueMapper: (ChartData data, _) => data.label,
-                                            yValueMapper: (ChartData data, _) => data.value,
-                                            color: Color(0xFFF7941D),
-                                          ),
-                                        ],
-                                      ),
+                          SizedBox(height: 10),
+                          Container(
+                            height: 300, // Gráfico más alto
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Container(
+                                width: maximosIncidencia.length * 80, // Ajustar el ancho según la cantidad de datos
+                                child: SfCartesianChart(
+                                  primaryXAxis: DateTimeAxis(),
+                                  series: <ChartSeries<IncidenceData, DateTime>>[
+                                    SplineAreaSeries<IncidenceData, DateTime>(
+                                      dataSource: maximosIncidencia,
+                                      xValueMapper: (IncidenceData data, _) => data.date,
+                                      yValueMapper: (IncidenceData data, _) => data.count.toDouble(),
+                                      color: naranja.withOpacity(0.5),
+                                      borderColor: naranja,
+                                      borderWidth: 2,
                                     ),
-                                  ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+
+                  // Gráfico de Distribución por género
+                  Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: naranja), // Borde naranja
+                    ),
+                    color: Colors.white, // Fondo blanco
+                    child: Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Distribución por género',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: naranja, // Título color naranja
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            height: 300, // Gráfico más alto
+                            child: SfCartesianChart(
+                              primaryXAxis: CategoryAxis(),
+                              series: <ColumnSeries<ChartData, String>>[
+                                ColumnSeries<ChartData, String>(
+                                  dataSource: distribucionGenero,
+                                  xValueMapper: (ChartData data, _) => data.label,
+                                  yValueMapper: (ChartData data, _) => data.value,
+                                  pointColorMapper: (ChartData data, _) => data.color,
                                 ),
                               ],
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Card(
-                          elevation: 5,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                                color: Color(0xFFF7941D)), // Borde naranja
-                          ),
-                          color: Colors.white, // Fondo blanco
-                          child: Padding(
-                            padding: const EdgeInsets.all(15.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Distribución por género',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFF7941D), // Título color naranja
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                Container(
-                                  height: 300, // Gráfico más alto
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.vertical,
-                                    child: Container(
-                                      height: 300, // Limitar el alto máximo del gráfico
-                                      child: SfCartesianChart(
-                                        primaryXAxis: CategoryAxis(),
-                                        series: <StackedColumnSeries>[
-                                          StackedColumnSeries<ChartData, String>(
-                                            dataSource: [
-                                              ChartData('Hombres', 60, Color(0xFFF7941D)),
-                                              ChartData('Mujeres', 40, Color(0xFF4A4A4A)),
-                                            ],
-                                            xValueMapper: (ChartData data, _) => data.label,
-                                            yValueMapper: (ChartData data, _) => data.value,
-                                            pointColorMapper: (ChartData data, _) => data.color,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
@@ -333,11 +383,12 @@ class PieChartCard extends StatelessWidget {
               PieSeries<ChartData, String>(
                 dataSource: [
                   ChartData(localidad, porcentaje, color),
+                  ChartData('Resto', 100 - porcentaje, Colors.grey[200]!),
                 ],
                 xValueMapper: (ChartData data, _) => data.label,
                 yValueMapper: (ChartData data, _) => data.value,
                 pointColorMapper: (ChartData data, _) => data.color,
-                dataLabelMapper: (ChartData data, _) => '${data.value}%',
+                dataLabelMapper: (ChartData data, _) => '${data.value.toStringAsFixed(1)}%',
                 dataLabelSettings: DataLabelSettings(
                   isVisible: true,
                   textStyle: TextStyle(
@@ -373,11 +424,10 @@ class ResumenCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.3,
       height: 100,
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: bordeColor, width: 1), // Borde color naranja
+        border: Border.all(color: bordeColor, width: 1),
         borderRadius: BorderRadius.circular(5),
       ),
       child: Column(
@@ -396,8 +446,9 @@ class ResumenCard extends StatelessWidget {
             titulo,
             style: TextStyle(
               fontSize: 14,
-              color: Color(0xFFF7941D), // Título color naranja
+              color: bordeColor,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -405,7 +456,15 @@ class ResumenCard extends StatelessWidget {
   }
 }
 
-// Clase para los datos del gráfico
+// Clase para los datos del gráfico de incidencia
+class IncidenceData {
+  final DateTime date;
+  final int count;
+
+  IncidenceData(this.date, this.count);
+}
+
+// Clase para los datos del gráfico general
 class ChartData {
   final String label;
   final double value;
