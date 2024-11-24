@@ -9,9 +9,9 @@ class CatalogServiceRedServicio {
 
   // Obtener todos los SILAIS
   Future<List<Map<String, dynamic>>> getAllSilais() async {
-    final response =
-        await httpService.get('$BASE_URL$CATALOGOS_RED_DE_SERVICIO/list-silais');
-    
+    final response = await httpService
+        .get('$BASE_URL$CATALOGOS_RED_DE_SERVICIO/list-silais');
+
     // Decodificación asegurada en UTF-8
     final decodedResponse = utf8.decode(response.bodyBytes);
     List<dynamic> jsonResponse = jsonDecode(decodedResponse);
@@ -26,8 +26,9 @@ class CatalogServiceRedServicio {
 
   // Obtener un SILAIS por ID
   Future<Map<String, dynamic>> getSilaisById(int id) async {
-    final response = await httpService.get('$BASE_URL$CATALOGOS_RED_DE_SERVICIO/silais/$id');
-    
+    final response =
+        await httpService.get('$BASE_URL$CATALOGOS_RED_DE_SERVICIO/silais/$id');
+
     final decodedResponse = utf8.decode(response.bodyBytes);
     return jsonDecode(decodedResponse) as Map<String, dynamic>;
   }
@@ -42,7 +43,8 @@ class CatalogServiceRedServicio {
   }
 
   // Actualizar un SILAIS
-  Future<Map<String, dynamic>> updateSilais(int id, Map<String, dynamic> silais) async {
+  Future<Map<String, dynamic>> updateSilais(
+      int id, Map<String, dynamic> silais) async {
     final response = await httpService.put(
         '$BASE_URL$CATALOGOS_RED_DE_SERVICIO/update-silais/$id', silais);
 
@@ -52,13 +54,15 @@ class CatalogServiceRedServicio {
 
   // Eliminar un SILAIS
   Future<void> deleteSilais(int id) async {
-    await httpService.delete('$BASE_URL$CATALOGOS_RED_DE_SERVICIO/delete-silais/$id');
+    await httpService
+        .delete('$BASE_URL$CATALOGOS_RED_DE_SERVICIO/delete-silais/$id');
   }
 
   // Obtener todos los establecimientos
   Future<List<Map<String, dynamic>>> getAllEstablecimientos() async {
-    final response = await httpService.get('$BASE_URL$CATALOGOS_RED_DE_SERVICIO/list-establecimientos');
-    
+    final response = await httpService
+        .get('$BASE_URL$CATALOGOS_RED_DE_SERVICIO/list-establecimientos');
+
     final decodedResponse = utf8.decode(response.bodyBytes);
     List<dynamic> jsonResponse = jsonDecode(decodedResponse);
 
@@ -72,17 +76,19 @@ class CatalogServiceRedServicio {
 
   // Obtener un establecimiento por ID
   Future<Map<String, dynamic>> getEstablecimientoById(int id) async {
-    final response = await httpService.get('$BASE_URL$CATALOGOS_RED_DE_SERVICIO/establecimiento/$id');
-    
+    final response = await httpService
+        .get('$BASE_URL$CATALOGOS_RED_DE_SERVICIO/establecimiento/$id');
+
     final decodedResponse = utf8.decode(response.bodyBytes);
     return jsonDecode(decodedResponse) as Map<String, dynamic>;
   }
 
   // Obtener establecimientos por ID de SILAIS
-  Future<List<Map<String, dynamic>>> getEstablecimientosBySilais(int idSilais) async {
+  Future<List<Map<String, dynamic>>> getEstablecimientosBySilais(
+      int idSilais) async {
     final response = await httpService.get(
         '$BASE_URL$CATALOGOS_RED_DE_SERVICIO/silais/$idSilais/establecimientos');
-    
+
     final decodedResponse = utf8.decode(response.bodyBytes);
     List<dynamic> jsonResponse = jsonDecode(decodedResponse);
 
