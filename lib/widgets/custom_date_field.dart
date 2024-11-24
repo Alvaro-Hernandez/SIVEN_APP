@@ -24,18 +24,18 @@ class CustomDateField extends StatelessWidget {
   }) : super(key: key);
 
   void _selectDate(BuildContext context) async {
-  DateTime? pickedDate = await showDatePicker(
-    context: context,
-    initialDate: DateTime.now(),
-    firstDate: DateTime(2000),
-    lastDate: DateTime(2100),
-  );
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
 
-  if (pickedDate != null) {
-    String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
-    controller.text = formattedDate;
+    if (pickedDate != null) {
+      String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+      controller.text = formattedDate;
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
