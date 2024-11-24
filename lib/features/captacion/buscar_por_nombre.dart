@@ -12,7 +12,8 @@ class BusquedaPorNombreScreen extends StatefulWidget {
   const BusquedaPorNombreScreen({Key? key}) : super(key: key);
 
   @override
-  _BusquedaPorNombreScreenState createState() => _BusquedaPorNombreScreenState();
+  _BusquedaPorNombreScreenState createState() =>
+      _BusquedaPorNombreScreenState();
 }
 
 class _BusquedaPorNombreScreenState extends State<BusquedaPorNombreScreen> {
@@ -28,11 +29,14 @@ class _BusquedaPorNombreScreenState extends State<BusquedaPorNombreScreen> {
 
   List<Map<String, dynamic>> resultados = [];
 
+  // Lista para almacenar los IDs de las personas encontradas
+  List<int> personaIds = [];
+
   @override
   void initState() {
     super.initState();
     initializeServices();
-    _loadSavedData();  // Cargar los datos guardados cuando se carga la pantalla
+    _loadSavedData(); // Cargar los datos guardados cuando se carga la pantalla
   }
 
   // Inicializar servicios
@@ -69,8 +73,10 @@ class _BusquedaPorNombreScreenState extends State<BusquedaPorNombreScreen> {
     try {
       String primerNombre = primerNombreController.text.trim().toLowerCase();
       String segundoNombre = segundoNombreController.text.trim().toLowerCase();
-      String primerApellido = primerApellidoController.text.trim().toLowerCase();
-      String segundoApellido = segundoApellidoController.text.trim().toLowerCase();
+      String primerApellido =
+          primerApellidoController.text.trim().toLowerCase();
+      String segundoApellido =
+          segundoApellidoController.text.trim().toLowerCase();
 
       List<String> terminosBusqueda = [];
 
@@ -80,33 +86,45 @@ class _BusquedaPorNombreScreenState extends State<BusquedaPorNombreScreen> {
       if (segundoApellido.isNotEmpty) terminosBusqueda.add(segundoApellido);
 
       if (terminosBusqueda.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Debe ingresar al menos un campo para realizar la búsqueda.'))
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text(
+                'Debe ingresar al menos un campo para realizar la búsqueda.')));
         return;
       }
 
-      List<Map<String, dynamic>> resultado = await personaService.buscarPersonasPorNombreOApellido(terminosBusqueda.join(" "));
+      List<Map<String, dynamic>> resultado = await personaService
+          .buscarPersonasPorNombreOApellido(terminosBusqueda.join(" "));
 
       if (resultado.isNotEmpty) {
         setState(() {
           resultados = resultado;
         });
 
+        // Extraer y almacenar los IDs (suponiendo que 'id_persona' es el campo de ID)
+        personaIds = resultado
+            .map<int>((persona) => persona['id_persona'] as int)
+            .toList();
+
+        // Imprimir los IDs en la terminal
+        print(
+            'IDs de las personas encontradas en BusquedaPorNombreScreen: $personaIds');
+
         Navigator.pushNamed(
           context,
           '/captacion_resultado_busqueda',
-          arguments: resultados, // Se envía la lista de resultados
+          arguments: {
+            'resultados': resultados,
+            'personaIds': personaIds,
+          },
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se encontraron resultados.'))
-        );
+            const SnackBar(content: Text('No se encontraron resultados.')));
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al buscar personas.'))
-      );
+          const SnackBar(content: Text('Error al buscar personas.')));
+      print('Error en buscarPorNombreOApellido: $e');
     }
   }
 
@@ -120,7 +138,8 @@ class _BusquedaPorNombreScreenState extends State<BusquedaPorNombreScreen> {
         leading: Padding(
           padding: const EdgeInsets.only(top: 13.0),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF1877F2), size: 32),
+            icon: const Icon(Icons.arrow_back,
+                color: Color(0xFF1877F2), size: 32),
             onPressed: () {
               Navigator.pushNamed(context, '/captacion_busqeda_persona');
             },
@@ -177,20 +196,24 @@ class _BusquedaPorNombreScreenState extends State<BusquedaPorNombreScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
                             controller: primerNombreController,
-                            onChanged: (value) => _saveData(), // Guardar cuando cambia
+                            onChanged: (value) =>
+                                _saveData(), // Guardar cuando cambia
                             decoration: InputDecoration(
                               labelText: 'Primer nombre*',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 1),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 1),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 2),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 2),
                               ),
                             ),
                           ),
@@ -201,20 +224,24 @@ class _BusquedaPorNombreScreenState extends State<BusquedaPorNombreScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
                             controller: primerApellidoController,
-                            onChanged: (value) => _saveData(), // Guardar cuando cambia
+                            onChanged: (value) =>
+                                _saveData(), // Guardar cuando cambia
                             decoration: InputDecoration(
                               labelText: 'Primer apellido*',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 1),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 1),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 2),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 2),
                               ),
                             ),
                           ),
@@ -229,20 +256,24 @@ class _BusquedaPorNombreScreenState extends State<BusquedaPorNombreScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
                             controller: segundoNombreController,
-                            onChanged: (value) => _saveData(), // Guardar cuando cambia
+                            onChanged: (value) =>
+                                _saveData(), // Guardar cuando cambia
                             decoration: InputDecoration(
                               labelText: 'Segundo nombre',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 1),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 1),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 2),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 2),
                               ),
                             ),
                           ),
@@ -253,20 +284,24 @@ class _BusquedaPorNombreScreenState extends State<BusquedaPorNombreScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
                             controller: segundoApellidoController,
-                            onChanged: (value) => _saveData(), // Guardar cuando cambia
+                            onChanged: (value) =>
+                                _saveData(), // Guardar cuando cambia
                             decoration: InputDecoration(
                               labelText: 'Segundo apellido',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 1),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 1),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 2),
+                                borderSide: const BorderSide(
+                                    color: Color(0xFF00BCD4), width: 2),
                               ),
                             ),
                           ),
@@ -283,7 +318,8 @@ class _BusquedaPorNombreScreenState extends State<BusquedaPorNombreScreen> {
                   ElevatedButton(
                     onPressed: buscarPorNombreOApellido,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 50),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 50),
                       backgroundColor: const Color(0xFF00BCD4),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -307,11 +343,4 @@ class _BusquedaPorNombreScreenState extends State<BusquedaPorNombreScreen> {
       ),
     );
   }
-}
-
-void main() {
-  runApp(const MaterialApp(
-    home: BusquedaPorNombreScreen(),
-    debugShowCheckedModeBanner: false,
-  ));
 }
