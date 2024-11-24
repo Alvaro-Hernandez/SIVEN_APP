@@ -12,14 +12,17 @@ class CaptacionBusquedaPersona extends StatefulWidget {
   const CaptacionBusquedaPersona({Key? key}) : super(key: key);
 
   @override
-  _CaptacionBusquedaPersonaState createState() => _CaptacionBusquedaPersonaState();
+  _CaptacionBusquedaPersonaState createState() =>
+      _CaptacionBusquedaPersonaState();
 }
 
 class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
   bool habilitarBusquedaPorNombre = false;
-  String? seleccion; // Para manejar la selección de botones "Recién Nacido" o "Desconocido"
+  String?
+      seleccion; // Para manejar la selección de botones "Recién Nacido" o "Desconocido"
   late PersonaService personaService;
-  List<Map<String, dynamic>> resultados = []; // Almacena los resultados de la búsqueda
+  List<Map<String, dynamic>> resultados =
+      []; // Almacena los resultados de la búsqueda
 
   // Declaración de servicios
   late CatalogServiceRedServicio catalogService;
@@ -27,6 +30,9 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
 
   // Controlador para el campo de texto de búsqueda
   TextEditingController busquedaController = TextEditingController();
+
+  // Lista para almacenar los IDs de las personas encontradas
+  List<int> personaIds = [];
 
   @override
   void initState() {
@@ -42,7 +48,8 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
 
     catalogService = CatalogServiceRedServicio(httpService: httpService);
     selectionStorageService = SelectionStorageService();
-    personaService = PersonaService(httpService: httpService); // Inicializar el servicio de Persona
+    personaService = PersonaService(
+        httpService: httpService); // Inicializar el servicio de Persona
   }
 
   // Cargar la búsqueda guardada en shared_preferences
@@ -51,7 +58,8 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
     String? savedBusqueda = prefs.getString('busqueda');
     if (savedBusqueda != null) {
       setState(() {
-        busquedaController.text = savedBusqueda; // Asignar el valor cargado al controlador
+        busquedaController.text =
+            savedBusqueda; // Asignar el valor cargado al controlador
       });
     }
   }
@@ -59,19 +67,30 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
   // Guardar la búsqueda en shared_preferences
   Future<void> _saveBusqueda() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('busqueda', busquedaController.text); // Guardar la búsqueda actual
+    await prefs.setString(
+        'busqueda', busquedaController.text); // Guardar la búsqueda actual
   }
 
   // Método para buscar personas por coincidencia de cédula o expediente
   void buscarPersonas() async {
     try {
-      List<Map<String, dynamic>> resultado = await personaService.buscarPersonasPorCedulaOExpediente(busquedaController.text);
+      List<Map<String, dynamic>> resultado = await personaService
+          .buscarPersonasPorCedulaOExpediente(busquedaController.text);
 
       if (resultado.isNotEmpty) {
         setState(() {
           resultados = resultado; // Almacenar los resultados de la búsqueda
         });
-        print('Personas encontradas: $resultado');
+        print('Personas encontradas en CaptacionBusquedaPersona: $resultado');
+
+        // Extraer y almacenar los IDs (suponiendo que 'id_persona' es el campo de ID)
+        personaIds = resultado
+            .map<int>((persona) => persona['id_persona'] as int)
+            .toList();
+
+        // Imprimir los IDs en la terminal
+        print(
+            'IDs de las personas encontradas en CaptacionBusquedaPersona: $personaIds');
 
         // Guardar la búsqueda en SharedPreferences solo al buscar
         await _saveBusqueda();
@@ -80,16 +99,20 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
         Navigator.pushNamed(
           context,
           '/captacion_resultado_busqueda',
-          arguments: resultados, // Pasar los resultados como lista de mapas
+          arguments: {
+            'resultados': resultados,
+            'personaIds': personaIds,
+          },
         );
       } else {
         // Manejar si no se encuentran personas
-        print('No se encontraron personas con los datos proporcionados');
+        print(
+            'No se encontraron personas con los datos proporcionados en CaptacionBusquedaPersona');
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('No se encontraron resultados.')));
       }
     } catch (e) {
-      print('Error al buscar personas: $e');
+      print('Error al buscar personas en CaptacionBusquedaPersona: $e');
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error al buscar personas.')));
     }
@@ -105,7 +128,8 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
         leading: Padding(
           padding: const EdgeInsets.only(top: 13.0),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF1877F2), size: 32),
+            icon: const Icon(Icons.arrow_back,
+                color: Color(0xFF1877F2), size: 32),
             onPressed: () {
               Navigator.pushNamed(context, '/home');
             },
@@ -147,7 +171,9 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: const [
-                      Icon(Icons.search, color: Color(0xFF00BCD4)), // Ícono de lupa con color #00BCD4
+                      Icon(Icons.search,
+                          color: Color(
+                              0xFF00BCD4)), // Ícono de lupa con color #00BCD4
                       SizedBox(width: 10),
                       Text(
                         'Búsqueda de persona',
@@ -179,7 +205,7 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
                                   color: Color(0xFF00BCD4), width: 2),
                             ),
                             color: seleccion == 'Recién Nacido'
-                                ? Color(0xFFEAF9FF)
+                                ? const Color(0xFFEAF9FF)
                                 : Colors.white,
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
@@ -191,8 +217,7 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
                                   SizedBox(height: 5),
                                   Text(
                                     'Recién Nacido',
-                                    style:
-                                        TextStyle(color: Color(0xFF00BCD4)),
+                                    style: TextStyle(color: Color(0xFF00BCD4)),
                                   ),
                                 ],
                               ),
@@ -219,7 +244,7 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
                                   color: Color(0xFF00BCD4), width: 2),
                             ),
                             color: seleccion == 'Desconocido'
-                                ? Color(0xFFEAF9FF)
+                                ? const Color(0xFFEAF9FF)
                                 : Colors.white,
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
@@ -231,8 +256,7 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
                                   SizedBox(height: 5),
                                   Text(
                                     'Desconocido',
-                                    style:
-                                        TextStyle(color: Color(0xFF00BCD4)),
+                                    style: TextStyle(color: Color(0xFF00BCD4)),
                                   ),
                                 ],
                               ),
@@ -247,22 +271,27 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
                   // Campo de texto para número de identificación o código de expediente
                   TextFormField(
                     decoration: InputDecoration(
-                      hintText: 'Escribe N° de identificación, Cód. de expediente único',
+                      hintText:
+                          'Escribe N° de identificación, Cód. de expediente único',
                       hintStyle: const TextStyle(color: Color(0xFFBDC3C7)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1),
+                        borderSide: const BorderSide(
+                            color: Color(0xFF00BCD4), width: 1),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1),
+                        borderSide: const BorderSide(
+                            color: Color(0xFF00BCD4), width: 1),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 2),
+                        borderSide: const BorderSide(
+                            color: Color(0xFF00BCD4), width: 2),
                       ),
                     ),
-                    controller: busquedaController, // Usar el controlador persistente
+                    controller:
+                        busquedaController, // Usar el controlador persistente
                   ),
                   const SizedBox(height: 10),
 
@@ -278,10 +307,13 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
 
                   // Botón Buscar con color de fondo 00BCD4
                   ElevatedButton(
-                    onPressed: buscarPersonas, // Ejecutar búsqueda por cédula o expediente
+                    onPressed:
+                        buscarPersonas, // Ejecutar búsqueda por cédula o expediente
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 50),
-                      backgroundColor: const Color(0xFF00BCD4), // Fondo del botón
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 50),
+                      backgroundColor:
+                          const Color(0xFF00BCD4), // Fondo del botón
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -304,11 +336,4 @@ class _CaptacionBusquedaPersonaState extends State<CaptacionBusquedaPersona> {
       ),
     );
   }
-}
-
-void main() {
-  runApp(const MaterialApp(
-    home: CaptacionBusquedaPersona(),
-    debugShowCheckedModeBanner: false,
-  ));
 }
