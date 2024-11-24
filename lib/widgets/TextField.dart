@@ -1,31 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Clase singleton para gestionar los dropdowns abiertos
-class DropdownManager {
-  static final DropdownManager _singleton = DropdownManager._internal();
-
-  factory DropdownManager() {
-    return _singleton;
-  }
-
-  DropdownManager._internal();
-
-  _CustomTextFieldDropdownState? _currentOpenDropdown;
-
-  void registerOpenDropdown(_CustomTextFieldDropdownState dropdown) {
-    if (_currentOpenDropdown != null && _currentOpenDropdown != dropdown) {
-      _currentOpenDropdown!._closeDropdown();
-    }
-    _currentOpenDropdown = dropdown;
-  }
-
-  void unregisterOpenDropdown(_CustomTextFieldDropdownState dropdown) {
-    if (_currentOpenDropdown == dropdown) {
-      _currentOpenDropdown = null;
-    }
-  }
-}
-
 class CustomTextFieldDropdown extends StatefulWidget {
   final String hintText;
   final TextEditingController controller;
@@ -36,18 +10,20 @@ class CustomTextFieldDropdown extends StatefulWidget {
   final double width;
   final double height;
   final Function(String)? onChanged;
+  final TextStyle? dropdownTextStyle;
 
   const CustomTextFieldDropdown({
     Key? key,
     required this.hintText,
     required this.controller,
     required this.options,
-    this.borderColor = Colors.orange,
+    this.borderColor = Colors.orange, // Color por defecto del borde
     this.borderWidth = 2.0,
     this.borderRadius = 5.0,
     this.width = double.infinity,
     this.height = 50.0,
     this.onChanged,
+    this.dropdownTextStyle,
   }) : super(key: key);
 
   @override
@@ -56,10 +32,10 @@ class CustomTextFieldDropdown extends StatefulWidget {
 }
 
 class _CustomTextFieldDropdownState extends State<CustomTextFieldDropdown> {
-  final LayerLink _layerLink = LayerLink();
-  OverlayEntry? _overlayEntry;
   bool _isDropdownOpen = false;
   final FocusNode _focusNode = FocusNode();
+  final TextEditingController _searchController = TextEditingController();
+  late List<String> _filteredOptions;
 
   void _toggleDropdown() {
     if (_isDropdownOpen) {
@@ -70,141 +46,137 @@ class _CustomTextFieldDropdownState extends State<CustomTextFieldDropdown> {
   }
 
   void _openDropdown() {
-    _overlayEntry = _createOverlayEntry();
-    Overlay.of(context).insert(_overlayEntry!);
-
     setState(() {
       _isDropdownOpen = true;
+      _filteredOptions = widget.options; // Inicializa opciones sin filtrar
     });
-
-    // Registrar este dropdown como el abierto actualmente
-    DropdownManager().registerOpenDropdown(this);
-
-    // Escuchar cambios de foco
-    _focusNode.addListener(_handleFocusChange);
   }
 
   void _closeDropdown() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-
     setState(() {
       _isDropdownOpen = false;
     });
-
-    // Remover el listener de foco
-    _focusNode.removeListener(_handleFocusChange);
-
-    // Desregistrar este dropdown
-    DropdownManager().unregisterOpenDropdown(this);
   }
 
-  void _handleFocusChange() {
-    if (!_focusNode.hasFocus) {
-      _closeDropdown();
+  void _filterOptions(String query) {
+    setState(() {
+      _filteredOptions = widget.options
+          .where((option) =>
+              option.toLowerCase().contains(query.toLowerCase())) // Filtrar
+          .toList();
+    });
+  }
+
+  void _handleOptionTap(String option) {
+    widget.controller.text = option;
+    _closeDropdown();
+    if (widget.onChanged != null) {
+      widget.onChanged!(option);
     }
   }
 
-  OverlayEntry _createOverlayEntry() {
-    RenderBox renderBox = context.findRenderObject() as RenderBox;
-    var size = renderBox.size;
-
-    return OverlayEntry(
-      builder: (context) => Positioned(
-        width: size.width,
-        child: CompositedTransformFollower(
-          link: _layerLink,
-          showWhenUnlinked: false,
-          offset: Offset(0.0, size.height + 5.0),
-          child: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(widget.borderRadius),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: 200, // Altura máxima del desplegable
-              ),
-              child: ListView(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                children: widget.options.map((option) {
-                  return ListTile(
-                    title: Text(option),
-                    onTap: () {
-                      widget.controller.text = option;
-                      _closeDropdown();
-
-                      // Ejecutar la función onChanged si está definida
-                      if (widget.onChanged != null) {
-                        widget.onChanged!(option);
-                      }
-                    },
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _filteredOptions = widget.options; // Inicializa con todas las opciones
+    _searchController.addListener(() {
+      _filterOptions(_searchController.text);
+    });
   }
 
   @override
   void dispose() {
     _closeDropdown();
     _focusNode.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: GestureDetector(
-        onTap: _toggleDropdown,
-        child: AbsorbPointer(
-          child: TextFormField(
-            controller: widget.controller,
-            focusNode: _focusNode,
-            decoration: InputDecoration(
-              hintText: widget.hintText,
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _isDropdownOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                    color: Color(0xFF4A4A4A),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: _toggleDropdown,
+          child: AbsorbPointer(
+            child: TextFormField(
+              controller: widget.controller,
+              focusNode: _focusNode,
+              decoration: InputDecoration(
+                hintText: widget.hintText,
+                suffixIcon: Icon(
+                  _isDropdownOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                  color: widget.borderColor, // Color dinámico del ícono
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  borderSide: BorderSide(
+                    color: widget.borderColor, // Color dinámico del borde
+                    width: widget.borderWidth,
                   ),
-                  IconButton(
-                    icon: Icon(Icons.delete, color: widget.borderColor),
-                    onPressed: () {
-                      widget.controller.clear();
-                    },
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  borderSide: BorderSide(
+                    color: widget.borderColor, // Color dinámico del borde
+                    width: widget.borderWidth,
                   ),
-                ],
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  borderSide: BorderSide(
+                    color: widget.borderColor, // Color dinámico del borde
+                    width: widget.borderWidth,
+                  ),
+                ),
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(widget.borderRadius),
-                borderSide: BorderSide(
-                    color: widget.borderColor, width: widget.borderWidth),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(widget.borderRadius),
-                borderSide: BorderSide(
-                    color: widget.borderColor, width: widget.borderWidth),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(widget.borderRadius),
-                borderSide: BorderSide(
-                    color: widget.borderColor, width: widget.borderWidth),
-              ),
-            ),
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black,
             ),
           ),
         ),
-      ),
+        if (_isDropdownOpen)
+          Container(
+            width: widget.width,
+            decoration: BoxDecoration(
+              border: Border.all(color: widget.borderColor),
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              color: Colors.white,
+            ),
+            child: Column(
+              children: [
+                // Campo de búsqueda dentro del dropdown
+                ListTile(
+                  title: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: "Buscar...",
+                      prefixIcon: Icon(Icons.search, color: widget.borderColor),
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                const Divider(),
+                // Opciones filtradas dinámicamente
+                ListView(
+                  shrinkWrap: true,
+                  children: _filteredOptions.map((option) {
+                    return ListTile(
+                      title: Text(
+                        option,
+                        style: widget.dropdownTextStyle ??
+                            TextStyle(
+                              fontSize: 16,
+                              color: Colors.black, // Color del texto
+                            ),
+                      ),
+                      onTap: () => _handleOptionTap(option),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
