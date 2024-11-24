@@ -31,7 +31,8 @@ class SelectionStorageService {
   }
 
   // Almacena en caché la lista de SILAIS
-  Future<void> saveSilaisListCache(List<Map<String, dynamic>> silaisList) async {
+  Future<void> saveSilaisListCache(
+      List<Map<String, dynamic>> silaisList) async {
     final encodedData = jsonEncode(silaisList);
     await _secureStorage.write(key: 'silais_list_cache', value: encodedData);
   }
@@ -56,8 +57,10 @@ class SelectionStorageService {
   }
 
   // Recupera los establecimientos del caché para un SILAIS específico
-  Future<List<Map<String, dynamic>>?> getEstablecimientosCache(int silaisId) async {
-    final cachedData = await _secureStorage.read(key: 'establecimientos_cache_$silaisId');
+  Future<List<Map<String, dynamic>>?> getEstablecimientosCache(
+      int silaisId) async {
+    final cachedData =
+        await _secureStorage.read(key: 'establecimientos_cache_$silaisId');
     if (cachedData != null) {
       return List<Map<String, dynamic>>.from(jsonDecode(cachedData));
     }
