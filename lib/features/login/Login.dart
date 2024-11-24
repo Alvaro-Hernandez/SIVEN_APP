@@ -1,26 +1,14 @@
+// lib/features/login/Login.dart
+
 import 'package:flutter/material.dart';
 import 'package:siven_app/widgets/version.dart'; // Importa el widget reutilizable
-import 'package:siven_app/features/red_de_servicio_screen.dart'; 
-import 'package:siven_app/core/network/auth_repository.dart'; 
-import 'package:siven_app/core/network/api_client.dart'; 
+import 'package:siven_app/core/network/auth_repository.dart';
+import 'package:siven_app/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
-
-void main() {
-  runApp(SivenApp());
-}
-
-class SivenApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
-      routes: {
-        '/red_servicio': (context) => const RedDeServicioScreen(), // Ruta para red_servicio
-      },
-    );
-  }
-}
+import 'package:url_launcher/url_launcher.dart'; // Importa url_launcher
+import 'package:siven_app/core/services/storage_service.dart'; // Importa StorageService
+import 'package:bcrypt/bcrypt.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({Key? key}) : super(key: key);
@@ -30,6 +18,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // Controladores y variables de estado
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FocusNode _usernameFocusNode = FocusNode();
@@ -39,7 +28,11 @@ class _LoginScreenState extends State<LoginScreen> {
   String _greetingMessage = '';
 
   // Inicializamos AuthRepository con ApiClient
-  final AuthRepository _authRepository = AuthRepository(apiClient: ApiClient(httpClient: http.Client()));
+  final AuthRepository _authRepository =
+      AuthRepository(apiClient: ApiClient(httpClient: http.Client()));
+
+  // Instancia de StorageService
+  final StorageService _storageService = StorageService();
 
   @override
   void initState() {
@@ -50,10 +43,45 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() {
           _greetingMessage = '¡Hola, ${_usernameController.text}!';
         });
+      } else {
+        setState(() {
+          _greetingMessage = '';
+        });
       }
     });
   }
 
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _usernameFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
+  }
+
+  // Verifica si hay conexión a Internet
+  Future<bool> hayConexion() async {
+    // Utiliza Connectivity para verificar la conexión
+    final connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
+
+  // Verifica las credenciales en modo offline
+  Future<bool> verificarUsuarioOffline(String username, String password) async {
+    final storedUsername = await _storageService.getUser();
+    final storedPasswordHash = await _storageService.getPasswordHash();
+
+    if (storedUsername == null || storedPasswordHash == null) {
+      return false; // No hay datos guardados
+    }
+
+    // Verificar si el usuario y contraseña coinciden
+    final passwordMatches = BCrypt.checkpw(password, storedPasswordHash);
+    return storedUsername == username && passwordMatches;
+  }
+
+  // Maneja el inicio de sesión
   Future<void> _handleLogin() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
@@ -69,28 +97,83 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    try {
-      // Llama al método de autenticación
-      final response = await _authRepository.login(username, password);
+    final tieneConexion = await hayConexion();
+    if (tieneConexion) {
+      // Login Online
+      try {
+        final response = await _authRepository.login(username, password);
+        final token = response['token'];
 
-      // Guardar token en el storage (ya manejado en AuthRepository)
-      print('Login exitoso: ${response['token']}');
+        if (token != null && token.isNotEmpty) {
+          // Guardar datos localmente
+          await _storageService.saveToken(token);
+          await _storageService.saveUser(username);
+          await _storageService
+              .savePasswordHash(password); // El hash se genera en el método
 
-      // Solo navega si el token es válido
-      if (response['token'] != null && response['token'].isNotEmpty) {
-        Navigator.pushNamed(context, '/red_servicio');
-      } else {
-        throw Exception('Token inválido');
+          // Navegar a la siguiente pantalla
+          Navigator.pushNamed(context, '/red_servicio');
+        } else {
+          throw Exception('Token inválido');
+        }
+      } catch (e) {
+        // Mostrar un mensaje de error si ocurre una excepción
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error de autenticación: ${e.toString()}')),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false; // Oculta el indicador de carga
+        });
       }
-    } catch (e) {
-      // Mostrar un mensaje de error si ocurre una excepción
+    } else {
+      // Login Offline
+      final esValidoOffline = await verificarUsuarioOffline(username, password);
+      if (esValidoOffline) {
+        Navigator.pushNamed(context, '/red_servicio'); // Acceso offline
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Credenciales Incorrectas')),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Envía un mensaje de "Olvidé mi contraseña" vía WhatsApp
+  Future<void> _sendForgotPasswordMessage() async {
+    final username = _usernameController.text.trim();
+    if (username.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error de autenticación: ${e.toString()}')),
+        SnackBar(content: Text('Por favor, ingresa tu usuario primero')),
       );
-    } finally {
-      setState(() {
-        _isLoading = false; // Oculta el indicador de carga
-      });
+      return;
+    }
+
+    final phoneNumber = '50558800062'; // Formato internacional sin símbolos
+    final message = 'El usuario $username olvidó su contraseña.';
+
+    // Construir las URLs
+    final whatsappSchemeUrl = Uri.parse(
+        'whatsapp://send?phone=$phoneNumber&text=${Uri.encodeComponent(message)}');
+    final whatsappWebUrl = Uri.parse(
+        'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}');
+
+    // Intentar abrir con el esquema de WhatsApp
+    if (await canLaunchUrl(whatsappSchemeUrl)) {
+      await launchUrl(whatsappSchemeUrl, mode: LaunchMode.externalApplication);
+    }
+    // Si falla, intentar abrir en el navegador
+    else if (await canLaunchUrl(whatsappWebUrl)) {
+      await launchUrl(whatsappWebUrl, mode: LaunchMode.externalApplication);
+    }
+    // Si ambas fallan, mostrar un mensaje de error
+    else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo abrir WhatsApp.')),
+      );
     }
   }
 
@@ -139,7 +222,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         focusNode: _passwordFocusNode,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _showPassword ? Icons.visibility : Icons.visibility_off,
+                            _showPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                           ),
                           onPressed: () {
                             setState(() {
@@ -152,20 +237,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton(
-                          onPressed: () {}, // Funcionalidad vacía
+                          onPressed: _sendForgotPasswordMessage,
                           child: Text(
                             '¿Olvidaste tu contraseña?',
-                            style: TextStyle(color: const Color.fromARGB(255, 255, 27, 27)),
+                            style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 27, 27)),
                           ),
                         ),
                       ),
                       SizedBox(height: 16),
                       _isLoading
-                          ? CircularProgressIndicator() // Mostrar indicador de carga
+                          ? CircularProgressIndicator(
+                              color: const Color.fromARGB(255, 69, 156, 255),
+                            )
                           : ElevatedButton(
-                              onPressed: _handleLogin, // Llama a la función de login
+                              onPressed: _handleLogin,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 69, 156, 255),
+                                backgroundColor:
+                                    const Color.fromARGB(255, 69, 156, 255),
                                 foregroundColor: Colors.white,
                                 minimumSize: Size(290, 50), // Botón más corto
                                 shape: RoundedRectangleBorder(
@@ -180,7 +269,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          const VersionWidget(), 
+          const VersionWidget(),
         ],
       ),
     );
@@ -196,7 +285,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.0), // Redondeado para todo el contenedor
+        borderRadius:
+            BorderRadius.circular(12.0), // Redondeado para todo el contenedor
         border: Border.all(
           color: const Color.fromARGB(255, 77, 160, 255), // Color del borde
           width: 2.0, // Ancho del borde
@@ -210,8 +300,10 @@ class _LoginScreenState extends State<LoginScreen> {
             decoration: BoxDecoration(
               color: const Color.fromARGB(255, 73, 158, 255), // Fondo del icono
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(10), // Igualar el redondeado del contenedor principal
-                bottomLeft: Radius.circular(10), // Igualar el redondeado del contenedor principal
+                topLeft: Radius.circular(
+                    10), // Igualar el redondeado del contenedor principal
+                bottomLeft: Radius.circular(
+                    10), // Igualar el redondeado del contenedor principal
               ),
             ),
             child: Icon(icon, color: Colors.white),
@@ -227,13 +319,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 filled: true,
                 fillColor: Colors.white,
                 suffixIcon: suffixIcon, // Icono de visibilidad
-                contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(12), // Asegura el redondeado de las esquinas derechas
+                    topRight: Radius.circular(
+                        12), // Asegura el redondeado de las esquinas derechas
                     bottomRight: Radius.circular(12),
                   ),
-                  borderSide: BorderSide.none, // Sin bordes visibles dentro del TextField
+                  borderSide: BorderSide
+                      .none, // Sin bordes visibles dentro del TextField
                 ),
               ),
             ),
