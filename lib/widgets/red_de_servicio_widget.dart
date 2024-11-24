@@ -34,7 +34,8 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
   Future<void> _loadSilais() async {
     try {
       // Primero verifica si los datos están en caché
-      final cachedSilais = await widget.selectionStorageService.getSilaisListCache();
+      final cachedSilais =
+          await widget.selectionStorageService.getSilaisListCache();
       if (cachedSilais != null && cachedSilais.isNotEmpty) {
         setState(() {
           silaisList = cachedSilais;
@@ -55,18 +56,21 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
   Future<void> _loadEstablecimientos(int idSilais) async {
     try {
       // Verifica si los establecimientos están en caché para el SILAIS seleccionado
-      final cachedEstablecimientos = await widget.selectionStorageService.getEstablecimientosCache(idSilais);
+      final cachedEstablecimientos = await widget.selectionStorageService
+          .getEstablecimientosCache(idSilais);
       if (cachedEstablecimientos != null && cachedEstablecimientos.isNotEmpty) {
         setState(() {
           establecimientosList = cachedEstablecimientos;
         });
       } else {
         // Si no están en caché, carga los datos de la API y almacénalos
-        final establecimientosData = await widget.catalogService.getEstablecimientosBySilais(idSilais);
+        final establecimientosData =
+            await widget.catalogService.getEstablecimientosBySilais(idSilais);
         setState(() {
           establecimientosList = establecimientosData;
         });
-        await widget.selectionStorageService.saveEstablecimientosCache(idSilais, establecimientosData);
+        await widget.selectionStorageService
+            .saveEstablecimientosCache(idSilais, establecimientosData);
       }
     } catch (e) {
       print('Error al cargar establecimientos: $e');
@@ -74,8 +78,10 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
   }
 
   Future<void> _initializeData() async {
-    final cachedSilaisId = await widget.selectionStorageService.getSelectedSilais();
-    final cachedUnidadSaludId = await widget.selectionStorageService.getSelectedUnidadSalud();
+    final cachedSilaisId =
+        await widget.selectionStorageService.getSelectedSilais();
+    final cachedUnidadSaludId =
+        await widget.selectionStorageService.getSelectedUnidadSalud();
 
     if (cachedSilaisId != null && cachedSilaisId.isNotEmpty) {
       setState(() {
@@ -221,7 +227,9 @@ class _RedDeServicioWidgetState extends State<RedDeServicioWidget> {
         onChanged(selectedId);
       },
       dropdownBuilder: (context, Map<String, dynamic>? selectedItem) {
-        return Text(selectedItem != null ? selectedItem['nombre'] : 'Seleccione $label');
+        return Text(selectedItem != null
+            ? selectedItem['nombre']
+            : 'Seleccione $label');
       },
     );
   }

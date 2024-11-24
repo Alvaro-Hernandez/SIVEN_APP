@@ -5,7 +5,8 @@ class VersionWidget extends StatelessWidget {
 
   const VersionWidget({
     Key? key,
-    this.versionText = 'SIVEN 1.0', // Texto de la versión, por defecto "SIVEN 1.0"
+    this.versionText =
+        'SIVEN 1.0', // Texto de la versión, por defecto "SIVEN 1.0"
   }) : super(key: key);
 
   @override
