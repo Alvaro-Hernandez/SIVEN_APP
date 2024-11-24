@@ -31,7 +31,8 @@ class FiltroPersonaWidget extends StatelessWidget {
         ),
         hintText: hintText,
         hintStyle: TextStyle(color: colorTexto),
-        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(5),
           borderSide: BorderSide(

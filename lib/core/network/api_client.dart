@@ -15,7 +15,8 @@ class ApiClient {
       url,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'usuario': usuario,  // Asegúrate de que estos campos coincidan con lo que el backend espera
+        'usuario':
+            usuario, // Asegúrate de que estos campos coincidan con lo que el backend espera
         'contrasena': contrasena, // Revisa que estos nombres sean correctos
       }),
     );
@@ -25,7 +26,8 @@ class ApiClient {
 
     if (response.statusCode == 200) {
       // Parsear la respuesta JSON
-      final Map<String, dynamic> responseBody = jsonDecode(response.body) as Map<String, dynamic>;
+      final Map<String, dynamic> responseBody =
+          jsonDecode(response.body) as Map<String, dynamic>;
 
       // Guardar el token en el almacenamiento seguro
       final token = responseBody['token'];
@@ -37,7 +39,8 @@ class ApiClient {
 
       return responseBody; // Devuelve el cuerpo de la respuesta por si necesitas más información
     } else {
-      throw Exception('Error de autenticación: ${response.statusCode} ${response.body}');
+      throw Exception(
+          'Error de autenticación: ${response.statusCode} ${response.body}');
     }
   }
 
@@ -64,4 +67,3 @@ class ApiClient {
     return response;
   }
 }
-

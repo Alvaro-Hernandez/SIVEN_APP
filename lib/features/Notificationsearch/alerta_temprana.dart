@@ -24,18 +24,42 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
   String selectedEpidemia = "Dengue";
 
   final List<String> regiones = [
-    "Managua", "RAAN", "Chinandega", "Boaco", "Masaya",
-    "León", "Granada", "Carazo", "Rivas", "Matagalpa"
+    "Managua",
+    "RAAN",
+    "Chinandega",
+    "Boaco",
+    "Masaya",
+    "León",
+    "Granada",
+    "Carazo",
+    "Rivas",
+    "Matagalpa"
   ];
 
   final List<String> periodos = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo",
-    "Junio", "Julio", "Agosto", "Septiembre", "Octubre"
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre"
   ];
 
   final List<String> epidemias = [
-    "Dengue", "Influenza", "Malaria", "Covid-19", "Chikungunya",
-    "Zika", "Hepatitis", "Tifoidea", "Colera", "Ébola"
+    "Dengue",
+    "Influenza",
+    "Malaria",
+    "Covid-19",
+    "Chikungunya",
+    "Zika",
+    "Hepatitis",
+    "Tifoidea",
+    "Colera",
+    "Ébola"
   ];
 
   List<Region> departments = [];
@@ -60,8 +84,10 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
     "Nueva Segovia": "lib/assets/GeoJson/Nueva_Segovia.geojson",
     "Rivas": "lib/assets/GeoJson/Rivas.geojson",
     "Río San Juan": "lib/assets/GeoJson/Río_San_Juan.geojson",
-    "Atlántico Norte": "lib/assets/GeoJson/Región_Autónoma_de_la_Costa_Caribe_Norte.geojson",
-    "Atlántico Sur": "lib/assets/GeoJson/Región_Autónoma_de_la_Costa_Caribe_Sur.geojson",
+    "Atlántico Norte":
+        "lib/assets/GeoJson/Región_Autónoma_de_la_Costa_Caribe_Norte.geojson",
+    "Atlántico Sur":
+        "lib/assets/GeoJson/Región_Autónoma_de_la_Costa_Caribe_Sur.geojson",
   };
 
   @override
@@ -71,16 +97,19 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
   }
 
   Future<void> loadDepartments() async {
-    departments = await loadRegions('lib/assets/GeoJson/ni.json', isDepartment: true);
+    departments =
+        await loadRegions('lib/assets/GeoJson/ni.json', isDepartment: true);
     setState(() {});
   }
 
-  Future<List<Region>> loadRegions(String path, {bool isDepartment = false}) async {
+  Future<List<Region>> loadRegions(String path,
+      {bool isDepartment = false}) async {
     String data = await rootBundle.loadString(path);
     Map<String, dynamic> jsonResult = json.decode(data);
     List<Region> regions = [];
 
-    List<Color> colorPalette = isDepartment ? departmentColors : municipalityColors;
+    List<Color> colorPalette =
+        isDepartment ? departmentColors : municipalityColors;
     int colorIndex = 0;
 
     for (var feature in jsonResult['features']) {
@@ -130,7 +159,8 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
         );
       }
 
-      regions.add(Region(name: name, polygons: polygonShapes, markers: markers));
+      regions
+          .add(Region(name: name, polygons: polygonShapes, markers: markers));
     }
 
     return regions;
@@ -192,11 +222,29 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
 
   List<ChartData> _getChartData() {
     if (selectedRegion == "Managua" && selectedPeriodo == "Enero") {
-      return [ChartData(1, 30), ChartData(2, 40), ChartData(3, 35), ChartData(4, 50), ChartData(5, 45)];
+      return [
+        ChartData(1, 30),
+        ChartData(2, 40),
+        ChartData(3, 35),
+        ChartData(4, 50),
+        ChartData(5, 45)
+      ];
     } else if (selectedRegion == "RAAN" && selectedPeriodo == "Febrero") {
-      return [ChartData(1, 20), ChartData(2, 35), ChartData(3, 50), ChartData(4, 40), ChartData(5, 25)];
+      return [
+        ChartData(1, 20),
+        ChartData(2, 35),
+        ChartData(3, 50),
+        ChartData(4, 40),
+        ChartData(5, 25)
+      ];
     } else {
-      return [ChartData(1, 50), ChartData(2, 60), ChartData(3, 70), ChartData(4, 55), ChartData(5, 65)];
+      return [
+        ChartData(1, 50),
+        ChartData(2, 60),
+        ChartData(3, 70),
+        ChartData(4, 55),
+        ChartData(5, 65)
+      ];
     }
   }
 
@@ -224,7 +272,8 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
         leading: Padding(
           padding: const EdgeInsets.only(top: 13.0),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF1877F2), size: 32),
+            icon: const Icon(Icons.arrow_back,
+                color: Color(0xFF1877F2), size: 32),
             onPressed: () {
               Navigator.pushNamed(context, '/home');
             },
@@ -271,7 +320,8 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
                               selectedRegion = newValue!;
                             });
                           },
-                          items: regiones.map<DropdownMenuItem<String>>((String value) {
+                          items: regiones
+                              .map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text(value),
@@ -289,7 +339,8 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
                               selectedPeriodo = newValue!;
                             });
                           },
-                          items: periodos.map<DropdownMenuItem<String>>((String value) {
+                          items: periodos
+                              .map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text(value),
@@ -307,7 +358,8 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
                               selectedEpidemia = newValue!;
                             });
                           },
-                          items: epidemias.map<DropdownMenuItem<String>>((String value) {
+                          items: epidemias
+                              .map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text(value),
@@ -330,8 +382,10 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
                       child: Container(
                         width: 600,
                         child: SfCartesianChart(
-                          title: ChartTitle(text: 'Incidencias de enfermedades'),
-                          legend: Legend(isVisible: true, position: LegendPosition.bottom),
+                          title:
+                              ChartTitle(text: 'Incidencias de enfermedades'),
+                          legend: Legend(
+                              isVisible: true, position: LegendPosition.bottom),
                           series: <ChartSeries>[
                             LineSeries<ChartData, int>(
                               name: selectedEpidemia,
@@ -369,10 +423,18 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            Expanded(child: _buildCircularChart(context, "Managua", 29)),
-                            Expanded(child: _buildCircularChart(context, "RAAN", 25)),
-                            Expanded(child: _buildCircularChart(context, "Chinandega", 23)),
-                            Expanded(child: _buildCircularChart(context, "Boaco", 21)),
+                            Expanded(
+                                child: _buildCircularChart(
+                                    context, "Managua", 29)),
+                            Expanded(
+                                child:
+                                    _buildCircularChart(context, "RAAN", 25)),
+                            Expanded(
+                                child: _buildCircularChart(
+                                    context, "Chinandega", 23)),
+                            Expanded(
+                                child:
+                                    _buildCircularChart(context, "Boaco", 21)),
                           ],
                         ),
                       ],
@@ -397,7 +459,8 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
                               zoom: 7.0,
                               minZoom: 5.0,
                               maxZoom: 10.0,
-                              interactiveFlags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+                              interactiveFlags: InteractiveFlag.pinchZoom |
+                                  InteractiveFlag.drag,
                               onTap: _handleTap,
                             ),
                             nonRotatedChildren: [],
@@ -492,7 +555,8 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
     return x > pX;
   }
 
-  Widget _buildCircularChart(BuildContext context, String label, double percentage) {
+  Widget _buildCircularChart(
+      BuildContext context, String label, double percentage) {
     return Column(
       children: [
         SizedBox(
@@ -504,8 +568,9 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
                   _PieData(label, percentage),
                   _PieData("Restante", 100 - percentage),
                 ],
-                pointColorMapper: (_PieData data, _) =>
-                    data.y == percentage ? Color(0xFFD9006C) : Color(0xFFe0e0e0),
+                pointColorMapper: (_PieData data, _) => data.y == percentage
+                    ? Color(0xFFD9006C)
+                    : Color(0xFFe0e0e0),
                 xValueMapper: (_PieData data, _) => data.x,
                 yValueMapper: (_PieData data, _) => data.y,
                 innerRadius: '70%',
@@ -514,7 +579,8 @@ class _AlertaTempranaState extends State<AlertaTemprana> {
           ),
         ),
         Text("$label", style: TextStyle(fontSize: 12)),
-        Text("$percentage%", style: TextStyle(fontSize: 16, color: Color(0xFFD9006C))),
+        Text("$percentage%",
+            style: TextStyle(fontSize: 16, color: Color(0xFFD9006C))),
       ],
     );
   }

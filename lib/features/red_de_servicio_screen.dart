@@ -32,10 +32,12 @@ class _RedDeServicioScreenState extends State<RedDeServicioScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: FutureBuilder(
-        future: initializeServices(), // Inicializa los servicios de manera asíncrona
+        future:
+            initializeServices(), // Inicializa los servicios de manera asíncrona
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator()); // Indicador de carga
+            return const Center(
+                child: CircularProgressIndicator()); // Indicador de carga
           } else if (snapshot.hasError) {
             return const Center(child: Text('Error al inicializar servicios'));
           } else {
@@ -94,7 +96,8 @@ class _RedDeServicioScreenState extends State<RedDeServicioScreen> {
                                 // Llamada al widget RedDeServicioWidget con los servicios inyectados
                                 RedDeServicioWidget(
                                   catalogService: catalogService!,
-                                  selectionStorageService: selectionStorageService!,
+                                  selectionStorageService:
+                                      selectionStorageService!,
                                 ),
 
                                 const SizedBox(height: 50.0),
@@ -135,7 +138,8 @@ class _RedDeServicioScreenState extends State<RedDeServicioScreen> {
                       children: [
                         Text(
                           'SIVEN 1.0',
-                          style: TextStyle(fontSize: 12.0, color: Color(0xFF757575)),
+                          style: TextStyle(
+                              fontSize: 12.0, color: Color(0xFF757575)),
                         ),
                         SizedBox(height: 10.0),
                       ],

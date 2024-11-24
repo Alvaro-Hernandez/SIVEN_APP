@@ -35,7 +35,8 @@ class ResultadosBusquedaScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ResultadosBusquedaScreenState createState() => _ResultadosBusquedaScreenState();
+  _ResultadosBusquedaScreenState createState() =>
+      _ResultadosBusquedaScreenState();
 }
 
 class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
@@ -92,8 +93,11 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
 
     try {
       final resultados = await captacionService.buscarCaptaciones(
-        fechaInicio: widget.fechaInicio.isNotEmpty ? DateTime.parse(widget.fechaInicio) : null,
-        fechaFin: widget.fechaFin.isNotEmpty ? DateTime.parse(widget.fechaFin) : null,
+        fechaInicio: widget.fechaInicio.isNotEmpty
+            ? DateTime.parse(widget.fechaInicio)
+            : null,
+        fechaFin:
+            widget.fechaFin.isNotEmpty ? DateTime.parse(widget.fechaFin) : null,
         idSilais: int.tryParse(widget.silais),
         idEventoSalud: int.tryParse(widget.evento),
         idEstablecimiento: int.tryParse(widget.unidadSalud),
@@ -101,6 +105,13 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
 
       setState(() {
         personasFiltradas = resultados;
+
+        // Imprimir datos para verificar el campo 'sexo'
+        print('Datos de personasFiltradas:');
+        for (var persona in personasFiltradas) {
+          print(
+              'Nombre: ${persona['nombreCompleto']}, Sexo: ${persona['sexo']}');
+        }
       });
     } catch (error) {
       print('Error al buscar captaciones: $error');
@@ -113,6 +124,7 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
     super.dispose();
   }
 
+  // Función existente para generar un reporte general
   Future<void> generarReportePDF() async {
     final pdf = pw.Document();
 
@@ -155,9 +167,12 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                 pw.SizedBox(height: 20),
                 pw.Text('SIVEN', style: tituloEstilo),
                 pw.SizedBox(height: 10),
-                pw.Text('Reporte de Resultados de Búsqueda', style: subtituloEstilo),
+                pw.Text('Reporte de Resultados de Búsqueda',
+                    style: subtituloEstilo),
                 pw.SizedBox(height: 10),
-                pw.Text('Fecha: ${DateTime.now().toLocal().toString().split(' ')[0]}', style: textoEstilo),
+                pw.Text(
+                    'Fecha: ${DateTime.now().toLocal().toString().split(' ')[0]}',
+                    style: textoEstilo),
               ],
             ),
           );
@@ -233,12 +248,148 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
     );
 
     final output = await getTemporaryDirectory();
-    final file = File("${output.path}/Reporte Generado.pdf");
+    final file = File("${output.path}/Reporte_Generado.pdf");
     await file.writeAsBytes(await pdf.save());
     await OpenFilex.open(file.path);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Reporte generado en: ${file.path}')),
+    );
+  }
+
+  // Nueva función para generar un reporte individual en formato de tabla
+  Future<void> generarReportePDFPersona(Map<String, dynamic> persona) async {
+    final pdf = pw.Document();
+
+    // Cargar fuentes y assets
+    final fontData = await rootBundle.load('lib/assets/Roboto-Regular.ttf');
+    final ttf = pw.Font.ttf(fontData);
+
+    final logoImage = pw.MemoryImage(
+      (await rootBundle.load('lib/assets/Isotipo-.webp')).buffer.asUint8List(),
+    );
+
+    // Definir estilos
+    final tituloEstilo = pw.TextStyle(
+      fontSize: 24,
+      fontWeight: pw.FontWeight.bold,
+      font: ttf,
+      color: PdfColors.lightBlue,
+    );
+
+    final subtituloEstilo = pw.TextStyle(
+      fontSize: 18,
+      fontWeight: pw.FontWeight.bold,
+      font: ttf,
+      color: PdfColors.blueGrey700,
+    );
+
+    final textoEstilo = pw.TextStyle(
+      fontSize: 12,
+      font: ttf,
+      color: PdfColors.blueGrey700,
+    );
+
+    // Crear la primera página con el encabezado
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Center(
+            child: pw.Column(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [
+                pw.Image(logoImage, width: 100, height: 100),
+                pw.SizedBox(height: 20),
+                pw.Text('SIVEN', style: tituloEstilo),
+                pw.SizedBox(height: 10),
+                pw.Text('Reporte de Persona', style: subtituloEstilo),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                    'Fecha: ${DateTime.now().toLocal().toString().split(' ')[0]}',
+                    style: textoEstilo),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    // Crear una página con los detalles de la persona en formato de tabla
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.all(32),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Header(
+                level: 1,
+                child:
+                    pw.Text('Detalles de la Persona', style: subtituloEstilo),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Table.fromTextArray(
+                headers: ['Campo', 'Valor'],
+                data: [
+                  ['Identificación', persona['cedula'] ?? 'Sin cédula'],
+                  [
+                    'Expediente',
+                    persona['codigoExpediente'] ?? 'Sin expediente'
+                  ],
+                  ['Nombre', persona['nombreCompleto'] ?? 'Sin nombre'],
+                  [
+                    'Ubicación',
+                    '${persona['municipio'] ?? 'Sin municipio'}/${persona['departamento'] ?? 'Sin departamento'}'
+                  ],
+                  ['Sexo', persona['sexo'] ?? 'No especificado'],
+                  // Agrega más campos según tus necesidades
+                ],
+                headerStyle: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                  font: ttf,
+                  color: PdfColors.white,
+                ),
+                cellStyle: pw.TextStyle(fontSize: 10, font: ttf),
+                headerDecoration: pw.BoxDecoration(
+                  color: PdfColors.lightBlue,
+                ),
+                cellHeight: 25,
+                cellAlignment: pw.Alignment.centerLeft,
+                cellAlignments: {
+                  0: pw.Alignment.centerLeft,
+                  1: pw.Alignment.centerLeft,
+                },
+                columnWidths: {
+                  0: pw.FlexColumnWidth(1),
+                  1: pw.FlexColumnWidth(2),
+                },
+                border: pw.TableBorder.all(color: PdfColors.blueGrey700),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    // Guardar el PDF en el dispositivo
+    final output = await getTemporaryDirectory();
+    final sanitizedNombre = (persona['nombreCompleto'] ?? 'Persona')
+        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .replaceAll(' ', '_');
+    final file = File("${output.path}/Reporte_$sanitizedNombre.pdf");
+    await file.writeAsBytes(await pdf.save());
+
+    // Abrir el PDF generado
+    await OpenFilex.open(file.path);
+
+    // Mostrar una notificación al usuario
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: Text(
+              'Reporte generado para ${persona['nombreCompleto'] ?? 'la persona'} en: ${file.path}')),
     );
   }
 
@@ -317,7 +468,8 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                               onPressed: () {
                                 generarReportePDF();
                               },
-                              icon: const Icon(Icons.article, color: naranja, size: 40),
+                              icon: const Icon(Icons.article,
+                                  color: naranja, size: 40),
                               label: const Text(
                                 'Generar Reporte de Esta Lista',
                                 style: TextStyle(color: naranja),
@@ -325,7 +477,8 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 side: const BorderSide(color: naranja),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
                                 minimumSize: const Size(150, 40),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5),
@@ -341,12 +494,17 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => AnalisisScreen(
-                                      datosFiltrados: personasFiltradas,
+                                      silais: widget.silais,
+                                      unidadSalud: widget.unidadSalud,
+                                      evento: widget.evento,
+                                      fechaInicio: widget.fechaInicio,
+                                      fechaFin: widget.fechaFin,
                                     ),
                                   ),
                                 );
                               },
-                              icon: const Icon(Icons.analytics, color: naranja, size: 40),
+                              icon: const Icon(Icons.analytics,
+                                  color: naranja, size: 40),
                               label: const Text(
                                 'Generar Análisis de Esta Lista',
                                 style: TextStyle(color: naranja),
@@ -354,7 +512,8 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 side: const BorderSide(color: naranja),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
                                 minimumSize: const Size(150, 40),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5),
@@ -364,7 +523,7 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 0),
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -373,7 +532,8 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                           final persona = personasFiltradas[index];
                           return CardPersonaWidget(
                             identificacion: persona['cedula'] ?? 'Sin cédula',
-                            expediente: persona['codigoExpediente'] ?? 'Sin expediente',
+                            expediente:
+                                persona['codigoExpediente'] ?? 'Sin expediente',
                             nombre: persona['nombreCompleto'] ?? 'Sin nombre',
                             ubicacion:
                                 '${persona['municipio'] ?? 'Sin municipio'}/${persona['departamento'] ?? 'Sin departamento'}',
@@ -381,7 +541,7 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
                             colorBoton: naranja,
                             textoBoton: 'Generar Reporte',
                             onBotonPressed: () {
-                              print('Generando reporte para ${persona['nombreCompleto']}');
+                              generarReportePDFPersona(persona);
                             },
                           );
                         },
@@ -433,6 +593,13 @@ class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
 
       setState(() {
         personasFiltradas = resultados;
+
+        // Imprimir datos para verificar el campo 'sexo' después de filtrar
+        print('Datos filtrados de personasFiltradas:');
+        for (var persona in personasFiltradas) {
+          print(
+              'Nombre: ${persona['nombreCompleto']}, Sexo: ${persona['sexo']}');
+        }
       });
     } catch (error) {
       print('Error al filtrar por persona: $error');
